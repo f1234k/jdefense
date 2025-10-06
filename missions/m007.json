@@ -1,0 +1,358 @@
+{
+"mission": {
+"name": "Mission 7",
+"description": "Storm the dark castle, confronting the ultimate horde of shadowed and undead legions.",
+"map_texture": "assets/maps/darkcastle_map.png",
+"background_music": "assets/audio/darkcastle_theme.ogg",
+"victory_sound": "assets/audio/victory_fanfare.wav",
+"defeat_sound": "assets/audio/game_over.wav",
+"starting_gold": 650,
+"starting_lives": 10,
+"wave_interval": 10.0,
+"difficulty": "hard",
+"total_waves": 12,
+"initial_pause": 10.0,
+"sounds": {
+"tower_build": "assets/audio/build_tower.wav",
+"enemy_spawn": "assets/audio/enemy_appear.wav",
+"damage_taken": "assets/audio/hit.wav"
+},
+"enemy_path": [
+{ "x": 50, "y": 400 },
+{ "x": 150, "y": 350 },
+{ "x": 200, "y": 450 },
+{ "x": 300, "y": 400 },
+{ "x": 350, "y": 300 },
+{ "x": 450, "y": 350 },
+{ "x": 500, "y": 450 },
+{ "x": 600, "y": 400 },
+{ "x": 700, "y": 500 },
+{ "x": 800, "y": 450 }
+]
+},
+"enemies": {
+"basic": {
+"health": 220,
+"speed": 80,
+"value": 22,
+"resistances": {
+"physical": 1.4,
+"fire": 1.0,
+"ice": 1.0,
+"poison": 0.5,
+"holy": 1.5
+}
+},
+"fast": {
+"health": 120,
+"speed": 115,
+"value": 28,
+"resistances": {
+"physical": 1.5,
+"fire": 0.8,
+"ice": 0.9,
+"poison": 0.7,
+"holy": 1.3
+}
+},
+"armored": {
+"health": 400,
+"speed": 48,
+"value": 55,
+"resistances": {
+"physical": 0.05,
+"fire": 1.0,
+"ice": 0.9,
+"poison": 0.8,
+"holy": 0.9
+}
+},
+"flying": {
+"health": 150,
+"speed": 105,
+"value": 38,
+"resistances": {
+"physical": 0.9,
+"fire": 1.0,
+"ice": 0.8,
+"poison": 1.3,
+"holy": 0.5
+}
+},
+"boss": {
+"health": 1100,
+"speed": 42,
+"value": 110,
+"resistances": {
+"physical": 0.1,
+"fire": 0.8,
+"ice": 0.7,
+"poison": 0.4,
+"holy": 0.9
+}
+},
+"undead": {
+"health": 220,
+"speed": 65,
+"value": 45,
+"resistances": {
+"physical": 1.3,
+"fire": 1.0,
+"ice": 1.0,
+"poison": 0.5,
+"holy": 0.1
+}
+}
+},
+"towers": {
+"basic": {
+"name": "Basic Tower",
+"cost": 75,
+"damage": 30,
+"range": 125,
+"fire_rate": 1.5,
+"damage_type": "physical",
+"color": 8421504,
+"hotkey": "B",
+"upgrades": [
+{
+"name": "damage_boost",
+"display_name": "Damage Boost",
+"cost": 75,
+"effect": { "damage": 24 }
+},
+{
+"name": "range_boost",
+"display_name": "Range Boost",
+"cost": 65,
+"effect": { "range": 36 }
+},
+{
+"name": "fire_rate_boost",
+"display_name": "Fire Rate Boost",
+"cost": 85,
+"effect": { "fire_rate": 1.0 }
+}
+]
+},
+"fire": {
+"name": "Fire Tower",
+"cost": 100,
+"damage": 25,
+"range": 115,
+"fire_rate": 1.3,
+"damage_type": "fire",
+"color": 16730688,
+"hotkey": "F",
+"upgrades": [
+{
+"name": "damage_boost",
+"display_name": "Damage Boost",
+"cost": 85,
+"effect": { "damage": 30 }
+},
+{
+"name": "range_boost",
+"display_name": "Range Boost",
+"cost": 75,
+"effect": { "range": 36 }
+},
+{
+"name": "fire_rate_boost",
+"display_name": "Fire Rate Boost",
+"cost": 95,
+"effect": { "fire_rate": 0.9 }
+}
+]
+},
+"ice": {
+"name": "Ice Tower",
+"cost": 105,
+"damage": 22,
+"range": 120,
+"fire_rate": 1.7,
+"damage_type": "ice",
+"color": 43647,
+"hotkey": "I",
+"upgrades": [
+{
+"name": "damage_boost",
+"display_name": "Damage Boost",
+"cost": 80,
+"effect": { "damage": 28 }
+},
+{
+"name": "range_boost",
+"display_name": "Range Boost",
+"cost": 70,
+"effect": { "range": 38 }
+},
+{
+"name": "fire_rate_boost",
+"display_name": "Fire Rate Boost",
+"cost": 90,
+"effect": { "fire_rate": 1.1 }
+}
+]
+},
+"poison": {
+"name": "Poison Tower",
+"cost": 115,
+"damage": 20,
+"range": 105,
+"fire_rate": 2.0,
+"damage_type": "poison",
+"color": 65280,
+"hotkey": "P",
+"upgrades": [
+{
+"name": "damage_boost",
+"display_name": "Damage Boost",
+"cost": 90,
+"effect": { "damage": 25 }
+},
+{
+"name": "range_boost",
+"display_name": "Range Boost",
+"cost": 80,
+"effect": { "range": 30 }
+},
+{
+"name": "fire_rate_boost",
+"display_name": "Fire Rate Boost",
+"cost": 100,
+"effect": { "fire_rate": 1.0 }
+}
+]
+},
+"holy": {
+"name": "Holy Tower",
+"cost": 125,
+"damage": 35,
+"range": 135,
+"fire_rate": 1.4,
+"damage_type": "holy",
+"color": 16776960,
+"hotkey": "H",
+"upgrades": [
+{
+"name": "damage_boost",
+"display_name": "Damage Boost",
+"cost": 95,
+"effect": { "damage": 30 }
+},
+{
+"name": "range_boost",
+"display_name": "Range Boost",
+"cost": 85,
+"effect": { "range": 40 }
+},
+{
+"name": "fire_rate_boost",
+"display_name": "Fire Rate Boost",
+"cost": 105,
+"effect": { "fire_rate": 0.8 }
+}
+]
+}
+},
+"waves": {
+"waves": [
+{
+"number": 1,
+"enemies": [
+  { "type": "basic", "count": 11, "spawn_delay": 0.9 }
+]
+},
+{
+"number": 2,
+"enemies": [
+  { "type": "basic", "count": 9, "spawn_delay": 0.9 },
+  { "type": "fast", "count": 10, "spawn_delay": 0.6 }
+]
+},
+{
+"number": 3,
+"enemies": [
+  { "type": "basic", "count": 11, "spawn_delay": 0.9 },
+  { "type": "fast", "count": 9, "spawn_delay": 0.6 },
+  { "type": "armored", "count": 8, "spawn_delay": 1.3 }
+]
+},
+{
+"number": 4,
+"enemies": [
+  { "type": "fast", "count": 12, "spawn_delay": 0.4 },
+  { "type": "armored", "count": 9, "spawn_delay": 1.3 },
+  { "type": "flying", "count": 8, "spawn_delay": 0.8 }
+]
+},
+{
+"number": 5,
+"enemies": [
+  { "type": "basic", "count": 10, "spawn_delay": 0.4 },
+  { "type": "fast", "count": 10, "spawn_delay": 0.4 },
+  { "type": "armored", "count": 9, "spawn_delay": 0.8 },
+  { "type": "flying", "count": 9, "spawn_delay": 0.6 },
+  { "type": "undead", "count": 7, "spawn_delay": 1.0 }
+]
+},
+{
+"number": 6,
+"enemies": [
+  { "type": "undead", "count": 10, "spawn_delay": 1.0 },
+  { "type": "flying", "count": 10, "spawn_delay": 0.5 },
+  { "type": "armored", "count": 8, "spawn_delay": 1.0 }
+]
+},
+{
+"number": 7,
+"enemies": [
+  { "type": "basic", "count": 10, "spawn_delay": 0.3 },
+  { "type": "fast", "count": 11, "spawn_delay": 0.3 },
+  { "type": "armored", "count": 10, "spawn_delay": 0.7 },
+  { "type": "flying", "count": 10, "spawn_delay": 0.5 },
+  { "type": "undead", "count": 9, "spawn_delay": 1.0 },
+  { "type": "boss", "count": 3, "spawn_delay": 0.5 }
+]
+},
+{
+"number": 8,
+"enemies": [
+  { "type": "undead", "count": 11, "spawn_delay": 0.8 },
+  { "type": "boss", "count": 4, "spawn_delay": 1.0 },
+  { "type": "flying", "count": 9, "spawn_delay": 0.6 }
+]
+},
+{
+"number": 9,
+"enemies": [
+  { "type": "basic", "count": 11, "spawn_delay": 0.2 },
+  { "type": "fast", "count": 12, "spawn_delay": 0.2 },
+  { "type": "boss", "count": 4, "spawn_delay": 1.5 }
+]
+},
+{
+"number": 10,
+"enemies": [
+  { "type": "boss", "count": 5, "spawn_delay": 1.0 },
+  { "type": "undead", "count": 12, "spawn_delay": 0.7 }
+]
+},
+{
+"number": 11,
+"enemies": [
+  { "type": "armored", "count": 11, "spawn_delay": 0.6 },
+  { "type": "boss", "count": 3, "spawn_delay": 1.5 }
+]
+},
+{
+"number": 12,
+"enemies": [
+  { "type": "boss", "count": 5, "spawn_delay": 0.8 },
+  { "type": "undead", "count": 15, "spawn_delay": 0.5 }
+]
+}
+]
+}
+}

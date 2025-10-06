@@ -32423,6 +32423,9 @@ function enemy_create(enemy_type, elements, path_config) {
     case "boss":
       color = 16711935;
       break;
+    case "undead":
+      color = 8388736;
+      break;
   }
   graphics.fill(color);
   const start_pos = path_get_position(path_config, 0);
@@ -32462,7 +32465,33 @@ function enemy_destroy(enemy) {
   enemy.graphics.destroy();
 }
 
+// src/lib/save.ts
+function save_get(version) {
+  const local_storage_save_value = localStorage.getItem("jdefense");
+  if (local_storage_save_value === null) {
+    const new_save = save_init(version);
+    localStorage.setItem("jdefense", JSON.stringify(new_save));
+    return new_save;
+  } else {
+    const current_save = JSON.parse(local_storage_save_value);
+    if (current_save.version !== version) {
+      const new_save = save_init(version);
+      localStorage.setItem("jdefense", JSON.stringify(new_save));
+      return new_save;
+    } else {
+      return current_save;
+    }
+  }
+}
+function save_init(version) {
+  return {
+    version,
+    mission: "m001"
+  };
+}
+
 // src/lib/modal.ts
+var VERSION2 = "0.0.1";
 function modal_show_instructions(text, on_start) {
   const modal_el = document.createElement("div");
   modal_el.classList.add("modal", "is-active");
@@ -32541,6 +32570,10 @@ function modal_show_defeat() {
   root.appendChild(modal_el);
 }
 function modal_show_victory() {
+  const missions = ["m001", "m002"];
+  const current_save = save_get(VERSION2);
+  const current_index = missions.indexOf(current_save.mission);
+  const has_next = current_index < missions.length - 1;
   const modal_el = document.createElement("div");
   modal_el.classList.add("modal", "is-active");
   const bg_el = document.createElement("div");
@@ -32566,8 +32599,15 @@ function modal_show_victory() {
   foot_el.classList.add("modal-card-foot");
   const btn_el = document.createElement("button");
   btn_el.classList.add("button", "is-success");
-  btn_el.textContent = "Restart";
-  btn_el.onclick = () => location.reload();
+  btn_el.textContent = has_next ? "Next Mission" : "Restart";
+  btn_el.onclick = () => {
+    if (has_next) {
+      const next_mission = missions[current_index + 1];
+      const new_save = { ...current_save, mission: next_mission };
+      localStorage.setItem("jdefense", JSON.stringify(new_save));
+    }
+    location.reload();
+  };
   foot_el.appendChild(btn_el);
   card_el.appendChild(foot_el);
   const root = document.body;
@@ -32594,6 +32634,12 @@ function projectile_create(start_pos, target, damage, damage_type) {
       break;
     case "ice":
       color = 65535;
+      break;
+    case "poison":
+      color = 65280;
+      break;
+    case "holy":
+      color = 16776960;
       break;
   }
   graphics.fill(color);
@@ -33293,4 +33339,4 @@ export {
   init2 as init
 };
 
-//# debugId=AA74C0CC90E6E90D64756E2164756E21
+//# debugId=3F3A13D5CF64D1EC64756E2164756E21
