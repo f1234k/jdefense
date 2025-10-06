@@ -1,0 +1,126 @@
+/* build/css/styles.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Epunda Slab", serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #fff;
+}
+
+/* NO EVENT HIJACKING */
+.button .icon,
+.button span {
+  pointer-events: none;
+}
+
+.hud-header,
+.hud-side-left,
+.hud-side-right,
+.hud-footer {
+  pointer-events: none;
+}
+
+.button {
+  pointer-events: auto;
+}
+
+.mm-text-sans {
+  font-family: "Epunda Sans", sans-serif;
+}
+
+.mm-text-slab {
+  font-family: "Epunda Slab", serif;
+}
+
+#app {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+canvas {
+  display: block;
+}
+
+/* HUD */
+.hud-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: #013340;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  z-index: 15;
+}
+
+.hud-side-left {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  padding-left: 8px;
+  bottom: 0;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  z-index: 12;
+  width: 200px;
+}
+
+.hud-side-right {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  padding-right: 8px;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  z-index: 12;
+}
+
+.hud-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity: 1;
+  color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  z-index: 15;
+  background-color: #013340; /* Add background for visibility */
+  padding: 10px; /* Add padding */
+  height: 60px; /* Give it explicit height */
+  align-items: center;
+}
+
+.hud-footer .info-div,
+.hud-footer .stats-div {
+  background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent bg for text visibility */
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 20;
+}
