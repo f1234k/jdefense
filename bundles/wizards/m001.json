@@ -1,0 +1,230 @@
+{
+  "mission": {
+    "name": "Mission 1",
+    "description": "Defend the base against incoming waves in a forested area.",
+    "map_texture": "assets/maps/forest_map.png",
+    "background_music": "assets/audio/background_theme.ogg",
+    "victory_sound": "assets/audio/victory fanfare.wav",
+    "defeat_sound": "assets/audio/game_over.wav",
+    "starting_gold": 300,
+    "starting_lives": 20,
+    "wave_interval": 15.0,
+    "difficulty": "medium",
+    "total_waves": 5,
+    "initial_pause": 30.0,
+    "sounds": {
+      "tower_build": "assets/audio/build_tower.wav",
+      "enemy_spawn": "assets/audio/enemy_appear.wav",
+      "damage_taken": "assets/audio/hit.wav"
+    },
+    "enemy_path": [
+      { "x": 50, "y": 300 },
+      { "x": 150, "y": 300 },
+      { "x": 200, "y": 200 },
+      { "x": 300, "y": 200 },
+      { "x": 350, "y": 400 },
+      { "x": 500, "y": 400 },
+      { "x": 550, "y": 250 },
+      { "x": 700, "y": 250 },
+      { "x": 750, "y": 350 },
+      { "x": 900, "y": 350 }
+    ]
+  },
+  "enemies": {
+    "basic": {
+      "health": 100,
+      "speed": 50,
+      "value": 10,
+      "resistances": {
+        "physical": 1.0,
+        "fire": 1.0,
+        "ice": 1.0,
+        "poison": 1.0,
+        "holy": 1.0
+      }
+    },
+    "fast": {
+      "health": 60,
+      "speed": 80,
+      "value": 15,
+      "resistances": {
+        "physical": 1.0,
+        "fire": 0.8,
+        "ice": 1.5,
+        "poison": 1.0,
+        "holy": 1.0
+      }
+    },
+    "armored": {
+      "health": 200,
+      "speed": 30,
+      "value": 25,
+      "resistances": {
+        "physical": 0.5,
+        "fire": 1.2,
+        "ice": 1.0,
+        "poison": 1.0,
+        "holy": 1.0
+      }
+    },
+    "flying": {
+      "health": 80,
+      "speed": 70,
+      "value": 20,
+      "resistances": {
+        "physical": 0.8,
+        "fire": 1.5,
+        "ice": 0.7,
+        "poison": 1.0,
+        "holy": 1.0
+      }
+    },
+    "boss": {
+      "health": 500,
+      "speed": 25,
+      "value": 50,
+      "resistances": {
+        "physical": 0.7,
+        "fire": 0.8,
+        "ice": 0.9,
+        "poison": 1.0,
+        "holy": 1.0
+      }
+    }
+  },
+  "towers": {
+    "basic": {
+      "name": "Basic Tower",
+      "cost": 50,
+      "damage": 20,
+      "range": 100,
+      "fire_rate": 1.0,
+      "damage_type": "physical",
+      "color": 8421504,
+      "hotkey": "B",
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "display_name": "Damage Boost",
+          "cost": 50,
+          "effect": { "damage": 15 }
+        },
+        {
+          "name": "range_boost",
+          "display_name": "Range Boost",
+          "cost": 40,
+          "effect": { "range": 25 }
+        },
+        {
+          "name": "fire_rate_boost",
+          "display_name": "Fire Rate Boost",
+          "cost": 60,
+          "effect": { "fire_rate": 0.5 }
+        }
+      ]
+    },
+    "fire": {
+      "name": "Fire Tower",
+      "cost": 75,
+      "damage": 15,
+      "range": 90,
+      "fire_rate": 0.8,
+      "damage_type": "fire",
+      "color": 16730688,
+      "hotkey": "F",
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "display_name": "Damage Boost",
+          "cost": 60,
+          "effect": { "damage": 20 }
+        },
+        {
+          "name": "range_boost",
+          "display_name": "Range Boost",
+          "cost": 50,
+          "effect": { "range": 25 }
+        },
+        {
+          "name": "fire_rate_boost",
+          "display_name": "Fire Rate Boost",
+          "cost": 70,
+          "effect": { "fire_rate": 0.4 }
+        }
+      ]
+    },
+    "ice": {
+      "name": "Ice Tower",
+      "cost": 80,
+      "damage": 12,
+      "range": 95,
+      "fire_rate": 1.2,
+      "damage_type": "ice",
+      "color": 43647,
+      "hotkey": "I",
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "display_name": "Damage Boost",
+          "cost": 55,
+          "effect": { "damage": 18 }
+        },
+        {
+          "name": "range_boost",
+          "display_name": "Range Boost",
+          "cost": 45,
+          "effect": { "range": 28 }
+        },
+        {
+          "name": "fire_rate_boost",
+          "display_name": "Fire Rate Boost",
+          "cost": 65,
+          "effect": { "fire_rate": 0.6 }
+        }
+      ]
+    }
+  },
+  "waves": {
+    "waves": [
+      {
+        "number": 1,
+        "enemies": [
+          { "type": "basic", "count": 5, "spawn_delay": 1.5 }
+        ]
+      },
+      {
+        "number": 2,
+        "enemies": [
+          { "type": "basic", "count": 3, "spawn_delay": 1.5 },
+          { "type": "fast", "count": 4, "spawn_delay": 1.2 }
+        ]
+      },
+      {
+        "number": 3,
+        "enemies": [
+          { "type": "basic", "count": 5, "spawn_delay": 1.5 },
+          { "type": "fast", "count": 3, "spawn_delay": 1.2 },
+          { "type": "armored", "count": 2, "spawn_delay": 2.0 }
+        ]
+      },
+      {
+        "number": 4,
+        "enemies": [
+          { "type": "fast", "count": 6, "spawn_delay": 1.0 },
+          { "type": "armored", "count": 3, "spawn_delay": 2.0 },
+          { "type": "flying", "count": 2, "spawn_delay": 1.5 }
+        ]
+      },
+      {
+        "number": 5,
+        "enemies": [
+          { "type": "basic", "count": 4, "spawn_delay": 1.0 },
+          { "type": "fast", "count": 4, "spawn_delay": 1.0 },
+          { "type": "armored", "count": 3, "spawn_delay": 1.5 },
+          { "type": "flying", "count": 3, "spawn_delay": 1.2 },
+          { "type": "boss", "count": 1, "spawn_delay": 3.0 }
+        ]
+      }
+    ]
+  }
+}

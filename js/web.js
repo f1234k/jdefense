@@ -30224,7 +30224,8 @@ function save_get(version) {
 function save_init(version) {
   return {
     version,
-    mission: "m001"
+    bundle: "",
+    mission: ""
   };
 }
 
@@ -31981,6 +31982,603 @@ function hud_create_side_right() {
   return side_right;
 }
 
+// node_modules/bitecs/dist/index.mjs
+var TYPES_ENUM = {
+  i8: "i8",
+  ui8: "ui8",
+  ui8c: "ui8c",
+  i16: "i16",
+  ui16: "ui16",
+  i32: "i32",
+  ui32: "ui32",
+  f32: "f32",
+  f64: "f64",
+  eid: "eid"
+};
+var TYPES_NAMES = {
+  i8: "Int8",
+  ui8: "Uint8",
+  ui8c: "Uint8Clamped",
+  i16: "Int16",
+  ui16: "Uint16",
+  i32: "Int32",
+  ui32: "Uint32",
+  eid: "Uint32",
+  f32: "Float32",
+  f64: "Float64"
+};
+var TYPES = {
+  i8: Int8Array,
+  ui8: Uint8Array,
+  ui8c: Uint8ClampedArray,
+  i16: Int16Array,
+  ui16: Uint16Array,
+  i32: Int32Array,
+  ui32: Uint32Array,
+  f32: Float32Array,
+  f64: Float64Array,
+  eid: Uint32Array
+};
+var UNSIGNED_MAX = {
+  uint8: 2 ** 8,
+  uint16: 2 ** 16,
+  uint32: 2 ** 32
+};
+var roundToMultiple = (mul) => (x3) => Math.ceil(x3 / mul) * mul;
+var roundToMultiple4 = roundToMultiple(4);
+var $storeRef = Symbol("storeRef");
+var $storeSize = Symbol("storeSize");
+var $storeMaps = Symbol("storeMaps");
+var $storeFlattened = Symbol("storeFlattened");
+var $storeBase = Symbol("storeBase");
+var $storeType = Symbol("storeType");
+var $storeArrayElementCounts = Symbol("storeArrayElementCounts");
+var $storeSubarrays = Symbol("storeSubarrays");
+var $subarrayCursors = Symbol("subarrayCursors");
+var $subarray = Symbol("subarray");
+var $subarrayFrom = Symbol("subarrayFrom");
+var $subarrayTo = Symbol("subarrayTo");
+var $parentArray = Symbol("parentArray");
+var $tagStore = Symbol("tagStore");
+var $queryShadow = Symbol("queryShadow");
+var $serializeShadow = Symbol("serializeShadow");
+var $indexType = Symbol("indexType");
+var $indexBytes = Symbol("indexBytes");
+var $isEidType = Symbol("isEidType");
+var stores = {};
+var createShadow = (store, key) => {
+  if (!ArrayBuffer.isView(store)) {
+    const shadowStore = store[$parentArray].slice(0);
+    store[key] = store.map((_2, eid) => {
+      const { length } = store[eid];
+      const start = length * eid;
+      const end = start + length;
+      return shadowStore.subarray(start, end);
+    });
+  } else {
+    store[key] = store.slice(0);
+  }
+};
+var resetStoreFor = (store, eid) => {
+  if (store[$storeFlattened]) {
+    store[$storeFlattened].forEach((ta) => {
+      if (ArrayBuffer.isView(ta))
+        ta[eid] = 0;
+      else
+        ta[eid].fill(0);
+    });
+  }
+};
+var createTypeStore = (type, length) => {
+  const totalBytes = length * TYPES[type].BYTES_PER_ELEMENT;
+  const buffer = new ArrayBuffer(totalBytes);
+  const store = new TYPES[type](buffer);
+  store[$isEidType] = type === TYPES_ENUM.eid;
+  return store;
+};
+var createArrayStore = (metadata, type, length) => {
+  const storeSize = metadata[$storeSize];
+  const store = Array(storeSize).fill(0);
+  store[$storeType] = type;
+  store[$isEidType] = type === TYPES_ENUM.eid;
+  const cursors = metadata[$subarrayCursors];
+  const indexType = length <= UNSIGNED_MAX.uint8 ? TYPES_ENUM.ui8 : length <= UNSIGNED_MAX.uint16 ? TYPES_ENUM.ui16 : TYPES_ENUM.ui32;
+  if (!length)
+    throw new Error("bitECS - Must define component array length");
+  if (!TYPES[type])
+    throw new Error(`bitECS - Invalid component array property type ${type}`);
+  if (!metadata[$storeSubarrays][type]) {
+    const arrayElementCount = metadata[$storeArrayElementCounts][type];
+    const array = new TYPES[type](roundToMultiple4(arrayElementCount * storeSize));
+    array[$indexType] = TYPES_NAMES[indexType];
+    array[$indexBytes] = TYPES[indexType].BYTES_PER_ELEMENT;
+    metadata[$storeSubarrays][type] = array;
+  }
+  const start = cursors[type];
+  const end = start + storeSize * length;
+  cursors[type] = end;
+  store[$parentArray] = metadata[$storeSubarrays][type].subarray(start, end);
+  for (let eid = 0;eid < storeSize; eid++) {
+    const start2 = length * eid;
+    const end2 = start2 + length;
+    store[eid] = store[$parentArray].subarray(start2, end2);
+    store[eid][$indexType] = TYPES_NAMES[indexType];
+    store[eid][$indexBytes] = TYPES[indexType].BYTES_PER_ELEMENT;
+    store[eid][$subarray] = true;
+  }
+  return store;
+};
+var isArrayType = (x3) => Array.isArray(x3) && typeof x3[0] === "string" && typeof x3[1] === "number";
+var createStore = (schema, size) => {
+  const $store = Symbol("store");
+  if (!schema || !Object.keys(schema).length) {
+    stores[$store] = {
+      [$storeSize]: size,
+      [$tagStore]: true,
+      [$storeBase]: () => stores[$store]
+    };
+    return stores[$store];
+  }
+  schema = JSON.parse(JSON.stringify(schema));
+  const arrayElementCounts = {};
+  const collectArrayElementCounts = (s2) => {
+    const keys = Object.keys(s2);
+    for (const k3 of keys) {
+      if (isArrayType(s2[k3])) {
+        if (!arrayElementCounts[s2[k3][0]])
+          arrayElementCounts[s2[k3][0]] = 0;
+        arrayElementCounts[s2[k3][0]] += s2[k3][1];
+      } else if (s2[k3] instanceof Object) {
+        collectArrayElementCounts(s2[k3]);
+      }
+    }
+  };
+  collectArrayElementCounts(schema);
+  const metadata = {
+    [$storeSize]: size,
+    [$storeMaps]: {},
+    [$storeSubarrays]: {},
+    [$storeRef]: $store,
+    [$subarrayCursors]: Object.keys(TYPES).reduce((a2, type) => ({ ...a2, [type]: 0 }), {}),
+    [$storeFlattened]: [],
+    [$storeArrayElementCounts]: arrayElementCounts
+  };
+  if (schema instanceof Object && Object.keys(schema).length) {
+    const recursiveTransform = (a2, k3) => {
+      if (typeof a2[k3] === "string") {
+        a2[k3] = createTypeStore(a2[k3], size);
+        a2[k3][$storeBase] = () => stores[$store];
+        metadata[$storeFlattened].push(a2[k3]);
+      } else if (isArrayType(a2[k3])) {
+        const [type, length] = a2[k3];
+        a2[k3] = createArrayStore(metadata, type, length);
+        a2[k3][$storeBase] = () => stores[$store];
+        metadata[$storeFlattened].push(a2[k3]);
+      } else if (a2[k3] instanceof Object) {
+        a2[k3] = Object.keys(a2[k3]).reduce(recursiveTransform, a2[k3]);
+      }
+      return a2;
+    };
+    stores[$store] = Object.assign(Object.keys(schema).reduce(recursiveTransform, schema), metadata);
+    stores[$store][$storeBase] = () => stores[$store];
+    return stores[$store];
+  }
+};
+var SparseSet = () => {
+  const dense = [];
+  const sparse = [];
+  dense.sort = function(comparator) {
+    const result = Array.prototype.sort.call(this, comparator);
+    for (let i2 = 0;i2 < dense.length; i2++) {
+      sparse[dense[i2]] = i2;
+    }
+    return result;
+  };
+  const has = (val) => dense[sparse[val]] === val;
+  const add = (val) => {
+    if (has(val))
+      return;
+    sparse[val] = dense.push(val) - 1;
+  };
+  const remove = (val) => {
+    if (!has(val))
+      return;
+    const index = sparse[val];
+    const swapped = dense.pop();
+    if (swapped !== val) {
+      dense[index] = swapped;
+      sparse[swapped] = index;
+    }
+  };
+  const reset = () => {
+    dense.length = 0;
+    sparse.length = 0;
+  };
+  return {
+    add,
+    remove,
+    has,
+    sparse,
+    dense,
+    reset
+  };
+};
+var not = (fn) => (v3) => !fn(v3);
+var storeFlattened = (c2) => c2[$storeFlattened];
+var isFullComponent = storeFlattened;
+var isProperty = not(isFullComponent);
+var isModifier = (c2) => typeof c2 === "function" && c2[$modifier];
+var isNotModifier = not(isModifier);
+var $entityMasks = Symbol("entityMasks");
+var $entityComponents = Symbol("entityComponents");
+var $entitySparseSet = Symbol("entitySparseSet");
+var $entityArray = Symbol("entityArray");
+var $entityIndices = Symbol("entityIndices");
+var $removedEntities = Symbol("removedEntities");
+var defaultSize = 1e5;
+var globalEntityCursor = 0;
+var globalSize = defaultSize;
+var getGlobalSize = () => globalSize;
+var removed = [];
+var recycled = [];
+var defaultRemovedReuseThreshold = 0.01;
+var removedReuseThreshold = defaultRemovedReuseThreshold;
+var getEntityCursor = () => globalEntityCursor;
+var eidToWorld = /* @__PURE__ */ new Map;
+var addEntity = (world) => {
+  const eid = world[$manualEntityRecycling] ? removed.length ? removed.shift() : globalEntityCursor++ : removed.length > Math.round(globalSize * removedReuseThreshold) ? removed.shift() : globalEntityCursor++;
+  if (eid > world[$size])
+    throw new Error("bitECS - max entities reached");
+  world[$entitySparseSet].add(eid);
+  eidToWorld.set(eid, world);
+  world[$notQueries].forEach((q2) => {
+    const match = queryCheckEntity(world, q2, eid);
+    if (match)
+      queryAddEntity(q2, eid);
+  });
+  world[$entityComponents].set(eid, /* @__PURE__ */ new Set);
+  return eid;
+};
+var removeEntity = (world, eid) => {
+  if (!world[$entitySparseSet].has(eid))
+    return;
+  world[$queries].forEach((q2) => {
+    queryRemoveEntity(world, q2, eid);
+  });
+  if (world[$manualEntityRecycling])
+    recycled.push(eid);
+  else
+    removed.push(eid);
+  world[$entitySparseSet].remove(eid);
+  world[$entityComponents].delete(eid);
+  world[$localEntities].delete(world[$localEntityLookup].get(eid));
+  world[$localEntityLookup].delete(eid);
+  for (let i2 = 0;i2 < world[$entityMasks].length; i2++)
+    world[$entityMasks][i2][eid] = 0;
+};
+var $modifier = Symbol("$modifier");
+function Any(...comps) {
+  return function QueryAny() {
+    return comps;
+  };
+}
+function All(...comps) {
+  return function QueryAll() {
+    return comps;
+  };
+}
+function None(...comps) {
+  return function QueryNone() {
+    return comps;
+  };
+}
+var $queries = Symbol("queries");
+var $notQueries = Symbol("notQueries");
+var $queryAny = Symbol("queryAny");
+var $queryAll = Symbol("queryAll");
+var $queryNone = Symbol("queryNone");
+var $queryMap = Symbol("queryMap");
+var $dirtyQueries = Symbol("$dirtyQueries");
+var $queryComponents = Symbol("queryComponents");
+var $enterQuery = Symbol("enterQuery");
+var $exitQuery = Symbol("exitQuery");
+var empty = Object.freeze([]);
+var registerQuery = (world, query) => {
+  const components2 = [];
+  const notComponents = [];
+  const changedComponents = [];
+  query[$queryComponents].forEach((c2) => {
+    if (typeof c2 === "function" && c2[$modifier]) {
+      const [comp, mod] = c2();
+      if (!world[$componentMap].has(comp))
+        registerComponent(world, comp);
+      if (mod === "not") {
+        notComponents.push(comp);
+      }
+      if (mod === "changed") {
+        changedComponents.push(comp);
+        components2.push(comp);
+      }
+    } else {
+      if (!world[$componentMap].has(c2))
+        registerComponent(world, c2);
+      components2.push(c2);
+    }
+  });
+  const mapComponents = (c2) => world[$componentMap].get(c2);
+  const allComponents = components2.concat(notComponents).map(mapComponents);
+  const sparseSet = SparseSet();
+  const archetypes = [];
+  const changed = [];
+  const toRemove = SparseSet();
+  const entered = SparseSet();
+  const exited = SparseSet();
+  const generations = allComponents.map((c2) => c2.generationId).reduce((a2, v3) => {
+    if (a2.includes(v3))
+      return a2;
+    a2.push(v3);
+    return a2;
+  }, []);
+  const reduceBitflags = (a2, c2) => {
+    if (!a2[c2.generationId])
+      a2[c2.generationId] = 0;
+    a2[c2.generationId] |= c2.bitflag;
+    return a2;
+  };
+  const masks = components2.map(mapComponents).reduce(reduceBitflags, {});
+  const notMasks = notComponents.map(mapComponents).reduce(reduceBitflags, {});
+  const hasMasks = allComponents.reduce(reduceBitflags, {});
+  const flatProps = components2.filter((c2) => !c2[$tagStore]).map((c2) => Object.getOwnPropertySymbols(c2).includes($storeFlattened) ? c2[$storeFlattened] : [c2]).reduce((a2, v3) => a2.concat(v3), []);
+  const shadows = [];
+  const q2 = Object.assign(sparseSet, {
+    archetypes,
+    changed,
+    components: components2,
+    notComponents,
+    changedComponents,
+    allComponents,
+    masks,
+    notMasks,
+    hasMasks,
+    generations,
+    flatProps,
+    toRemove,
+    entered,
+    exited,
+    shadows
+  });
+  world[$queryMap].set(query, q2);
+  world[$queries].add(q2);
+  allComponents.forEach((c2) => {
+    c2.queries.add(q2);
+  });
+  if (notComponents.length)
+    world[$notQueries].add(q2);
+  for (let eid = 0;eid < getEntityCursor(); eid++) {
+    if (!world[$entitySparseSet].has(eid))
+      continue;
+    const match = queryCheckEntity(world, q2, eid);
+    if (match)
+      queryAddEntity(q2, eid);
+  }
+};
+var generateShadow = (q2, pid) => {
+  const $3 = Symbol();
+  const prop = q2.flatProps[pid];
+  createShadow(prop, $3);
+  q2.shadows[pid] = prop[$3];
+  return prop[$3];
+};
+var diff = (q2, clearDiff) => {
+  if (clearDiff)
+    q2.changed = [];
+  const { flatProps, shadows } = q2;
+  for (let i2 = 0;i2 < q2.dense.length; i2++) {
+    const eid = q2.dense[i2];
+    let dirty = false;
+    for (let pid = 0;pid < flatProps.length; pid++) {
+      const prop = flatProps[pid];
+      const shadow = shadows[pid] || generateShadow(q2, pid);
+      if (ArrayBuffer.isView(prop[eid])) {
+        for (let i22 = 0;i22 < prop[eid].length; i22++) {
+          if (prop[eid][i22] !== shadow[eid][i22]) {
+            dirty = true;
+            break;
+          }
+        }
+        shadow[eid].set(prop[eid]);
+      } else {
+        if (prop[eid] !== shadow[eid]) {
+          dirty = true;
+          shadow[eid] = prop[eid];
+        }
+      }
+    }
+    if (dirty)
+      q2.changed.push(eid);
+  }
+  return q2.changed;
+};
+var flatten = (a2, v3) => a2.concat(v3);
+var aggregateComponentsFor = (mod) => (x3) => x3.filter((f2) => f2.name === mod().constructor.name).reduce(flatten);
+var getAnyComponents = aggregateComponentsFor(Any);
+var getAllComponents = aggregateComponentsFor(All);
+var getNoneComponents = aggregateComponentsFor(None);
+var defineQuery = (...args) => {
+  let components2;
+  let any, all, none;
+  if (Array.isArray(args[0])) {
+    components2 = args[0];
+  } else {}
+  if (components2 === undefined || components2[$componentMap] !== undefined) {
+    return (world) => world ? world[$entityArray] : components2[$entityArray];
+  }
+  const query = function(world, clearDiff = true) {
+    if (!world[$queryMap].has(query))
+      registerQuery(world, query);
+    const q2 = world[$queryMap].get(query);
+    commitRemovals(world);
+    if (q2.changedComponents.length)
+      return diff(q2, clearDiff);
+    return q2.dense;
+  };
+  query[$queryComponents] = components2;
+  query[$queryAny] = any;
+  query[$queryAll] = all;
+  query[$queryNone] = none;
+  return query;
+};
+var queryCheckEntity = (world, q2, eid) => {
+  const { masks, notMasks, generations } = q2;
+  let or = 0;
+  for (let i2 = 0;i2 < generations.length; i2++) {
+    const generationId = generations[i2];
+    const qMask = masks[generationId];
+    const qNotMask = notMasks[generationId];
+    const eMask = world[$entityMasks][generationId][eid];
+    if (qNotMask && (eMask & qNotMask) !== 0) {
+      return false;
+    }
+    if (qMask && (eMask & qMask) !== qMask) {
+      return false;
+    }
+  }
+  return true;
+};
+var queryAddEntity = (q2, eid) => {
+  q2.toRemove.remove(eid);
+  q2.entered.add(eid);
+  q2.add(eid);
+};
+var queryCommitRemovals = (q2) => {
+  for (let i2 = q2.toRemove.dense.length - 1;i2 >= 0; i2--) {
+    const eid = q2.toRemove.dense[i2];
+    q2.toRemove.remove(eid);
+    q2.remove(eid);
+  }
+};
+var commitRemovals = (world) => {
+  if (!world[$dirtyQueries].size)
+    return;
+  world[$dirtyQueries].forEach(queryCommitRemovals);
+  world[$dirtyQueries].clear();
+};
+var queryRemoveEntity = (world, q2, eid) => {
+  if (!q2.has(eid) || q2.toRemove.has(eid))
+    return;
+  q2.toRemove.add(eid);
+  world[$dirtyQueries].add(q2);
+  q2.exited.add(eid);
+};
+var $componentMap = Symbol("componentMap");
+var components = [];
+var defineComponent = (schema, size) => {
+  const component = createStore(schema, size || getGlobalSize());
+  if (schema && Object.keys(schema).length)
+    components.push(component);
+  return component;
+};
+var incrementBitflag = (world) => {
+  world[$bitflag] *= 2;
+  if (world[$bitflag] >= 2 ** 31) {
+    world[$bitflag] = 1;
+    world[$entityMasks].push(new Uint32Array(world[$size]));
+  }
+};
+var registerComponent = (world, component) => {
+  if (!component)
+    throw new Error(`bitECS - Cannot register null or undefined component`);
+  const queries = /* @__PURE__ */ new Set;
+  const notQueries = /* @__PURE__ */ new Set;
+  const changedQueries = /* @__PURE__ */ new Set;
+  world[$queries].forEach((q2) => {
+    if (q2.allComponents.includes(component)) {
+      queries.add(q2);
+    }
+  });
+  world[$componentMap].set(component, {
+    generationId: world[$entityMasks].length - 1,
+    bitflag: world[$bitflag],
+    store: component,
+    queries,
+    notQueries,
+    changedQueries
+  });
+  incrementBitflag(world);
+};
+var hasComponent = (world, component, eid) => {
+  const registeredComponent = world[$componentMap].get(component);
+  if (!registeredComponent)
+    return false;
+  const { generationId, bitflag } = registeredComponent;
+  const mask = world[$entityMasks][generationId][eid];
+  return (mask & bitflag) === bitflag;
+};
+var addComponent = (world, component, eid, reset = false) => {
+  if (eid === undefined)
+    throw new Error("bitECS - entity is undefined.");
+  if (!world[$entitySparseSet].has(eid))
+    throw new Error("bitECS - entity does not exist in the world.");
+  if (!world[$componentMap].has(component))
+    registerComponent(world, component);
+  if (hasComponent(world, component, eid))
+    return;
+  const c2 = world[$componentMap].get(component);
+  const { generationId, bitflag, queries, notQueries } = c2;
+  world[$entityMasks][generationId][eid] |= bitflag;
+  queries.forEach((q2) => {
+    q2.toRemove.remove(eid);
+    const match = queryCheckEntity(world, q2, eid);
+    if (match) {
+      q2.exited.remove(eid);
+      queryAddEntity(q2, eid);
+    }
+    if (!match) {
+      q2.entered.remove(eid);
+      queryRemoveEntity(world, q2, eid);
+    }
+  });
+  world[$entityComponents].get(eid).add(component);
+  if (reset)
+    resetStoreFor(component, eid);
+};
+var $size = Symbol("size");
+var $resizeThreshold = Symbol("resizeThreshold");
+var $bitflag = Symbol("bitflag");
+var $archetypes = Symbol("archetypes");
+var $localEntities = Symbol("localEntities");
+var $localEntityLookup = Symbol("localEntityLookup");
+var $manualEntityRecycling = Symbol("manualEntityRecycling");
+var worlds = [];
+var createWorld = (...args) => {
+  const world = typeof args[0] === "object" ? args[0] : {};
+  const size = typeof args[0] === "number" ? args[0] : typeof args[1] === "number" ? args[1] : getGlobalSize();
+  resetWorld(world, size);
+  worlds.push(world);
+  return world;
+};
+var resetWorld = (world, size = getGlobalSize()) => {
+  world[$size] = size;
+  if (world[$entityArray])
+    world[$entityArray].forEach((eid) => removeEntity(world, eid));
+  world[$entityMasks] = [new Uint32Array(size)];
+  world[$entityComponents] = /* @__PURE__ */ new Map;
+  world[$archetypes] = [];
+  world[$entitySparseSet] = SparseSet();
+  world[$entityArray] = world[$entitySparseSet].dense;
+  world[$bitflag] = 1;
+  world[$componentMap] = /* @__PURE__ */ new Map;
+  world[$queryMap] = /* @__PURE__ */ new Map;
+  world[$queries] = /* @__PURE__ */ new Set;
+  world[$notQueries] = /* @__PURE__ */ new Set;
+  world[$dirtyQueries] = /* @__PURE__ */ new Set;
+  world[$localEntities] = /* @__PURE__ */ new Map;
+  world[$localEntityLookup] = /* @__PURE__ */ new Map;
+  world[$manualEntityRecycling] = false;
+  return world;
+};
+var Types = TYPES_ENUM;
+
 // src/lib/containers.ts
 var containers_path = null;
 var containers_enemy = null;
@@ -32122,84 +32720,6 @@ function path_distance_to_segment(p2, a2, b2) {
   return path_distance(p2, proj);
 }
 
-// src/lib/enemy.ts
-var enemy_radius = 10;
-function enemy_create(enemy_type, elements, path_config) {
-  const config = elements.enemies[enemy_type];
-  if (!config) {
-    should_never_happen(`Invalid enemy type: ${enemy_type}`);
-    return { type: enemy_type, health: 0, progress: 0, graphics: new Graphics };
-  }
-  const graphics = new Graphics;
-  graphics.circle(0, 0, enemy_radius);
-  graphics.strokeStyle = {
-    width: 1,
-    color: 0
-  };
-  let color = 16711680;
-  switch (enemy_type) {
-    case "basic":
-      color = 65280;
-      break;
-    case "fast":
-      color = 16776960;
-      break;
-    case "armored":
-      color = 8421504;
-      break;
-    case "flying":
-      color = 65535;
-      break;
-    case "boss":
-      color = 16711935;
-      break;
-    case "undead":
-      color = 8388736;
-      break;
-  }
-  graphics.fill(color);
-  graphics.stroke();
-  const start_pos = path_get_position(path_config, 0);
-  graphics.position.set(start_pos.x, start_pos.y);
-  if (!containers_enemy) {
-    should_never_happen("Enemy container not found");
-    return { type: enemy_type, health: 0, progress: 0, graphics };
-  }
-  containers_enemy.addChild(graphics);
-  return {
-    type: enemy_type,
-    health: config.health,
-    progress: 0,
-    graphics
-  };
-}
-function enemy_update(enemy, delta_seconds, elements, path_config) {
-  if (enemy.health <= 0) {
-    return false;
-  }
-  const config = elements.enemies[enemy.type];
-  if (!config) {
-    should_never_happen(`Invalid enemy type: ${enemy.type}`);
-    return false;
-  }
-  enemy.progress += config.speed * delta_seconds / path_config.total_length;
-  if (enemy.progress >= 1) {
-    enemy_destroy(enemy);
-    return true;
-  }
-  const pos = path_get_position(path_config, enemy.progress);
-  enemy.graphics.position.set(pos.x, pos.y);
-  const dir = path_get_direction(path_config, enemy.progress);
-  enemy.graphics.rotation = Math.atan2(dir.dy, dir.dx);
-  return false;
-}
-function enemy_destroy(enemy) {
-  if (enemy.graphics.parent) {
-    enemy.graphics.parent.removeChild(enemy.graphics);
-  }
-  enemy.graphics.destroy();
-}
-
 // src/lib/modal.ts
 var VERSION2 = "0.0.1";
 function modal_show_instructions(text, on_start) {
@@ -32279,9 +32799,11 @@ function modal_show_defeat() {
   }
   root.appendChild(modal_el);
 }
-function modal_show_victory() {
-  const missions = ["m001", "m002", "m003", "m004", "m005", "m006", "m007"];
+async function modal_show_victory() {
   const current_save = save_get(VERSION2);
+  const bundle_url = `bundles/${current_save.bundle}/bundle.json`;
+  const bundle_config = await (await fetch(bundle_url)).json();
+  const missions = bundle_config.missions;
   const current_index = missions.indexOf(current_save.mission);
   const has_next = current_index < missions.length - 1;
   const modal_el = document.createElement("div");
@@ -32309,40 +32831,377 @@ function modal_show_victory() {
   foot_el.classList.add("modal-card-foot");
   const btn_el = document.createElement("button");
   btn_el.classList.add("button", "is-success");
-  btn_el.textContent = has_next ? "Next Mission" : "Restart from Mission 1";
-  btn_el.onclick = () => {
+  btn_el.textContent = has_next ? "Next Mission" : "Restart Bundle from Mission 1";
+  btn_el.onclick = async () => {
+    let new_mission = missions[0];
     if (has_next) {
-      const next_mission = missions[current_index + 1];
-      if (!next_mission) {
-        should_never_happen("Next mission not found");
-        return;
-      }
-      const new_save = { ...current_save, mission: next_mission };
-      localStorage.setItem("jdefense", JSON.stringify(new_save));
-    } else {
-      if (missions[0] !== undefined) {
-        const new_save = { ...current_save, mission: missions[0] };
-        localStorage.setItem("jdefense", JSON.stringify(new_save));
-      }
+      new_mission = missions[current_index + 1];
     }
+    const new_save = { ...current_save, mission: new_mission };
+    localStorage.setItem("jdefense", JSON.stringify(new_save));
     location.reload();
   };
   foot_el.appendChild(btn_el);
   card_el.appendChild(foot_el);
-  const root = document.body;
-  if (!root) {
-    should_never_happen("Document body not found");
-    return;
+  document.body.appendChild(modal_el);
+}
+function modal_show_bundle_select(bundles, on_select) {
+  const modal_el = document.createElement("div");
+  modal_el.classList.add("modal", "is-active");
+  const bg_el = document.createElement("div");
+  bg_el.classList.add("modal-background");
+  modal_el.appendChild(bg_el);
+  const card_el = document.createElement("div");
+  card_el.classList.add("modal-card");
+  modal_el.appendChild(card_el);
+  const head_el = document.createElement("header");
+  head_el.classList.add("modal-card-head");
+  const title_el = document.createElement("p");
+  title_el.classList.add("modal-card-title");
+  title_el.textContent = "Select Bundle";
+  head_el.appendChild(title_el);
+  card_el.appendChild(head_el);
+  const body_el = document.createElement("section");
+  body_el.classList.add("modal-card-body");
+  bundles.forEach((bundle) => {
+    const btn = document.createElement("button");
+    btn.classList.add("button", "is-primary", "mb-2");
+    btn.style.width = "100%";
+    btn.textContent = bundle.name;
+    btn.onclick = () => {
+      modal_el.remove();
+      on_select(bundle.id);
+    };
+    body_el.appendChild(btn);
+  });
+  card_el.appendChild(body_el);
+  document.body.appendChild(modal_el);
+}
+
+// src/lib/components.ts
+var Position = defineComponent({ x: Types.f32, y: Types.f32 });
+var Health = defineComponent({ value: Types.f32 });
+var Progress = defineComponent({ value: Types.f32 });
+var Cooldown = defineComponent({ timer: Types.f32 });
+var Projectile = defineComponent({ target: Types.eid, damage: Types.f32 });
+var Enemy = defineComponent();
+var Tower = defineComponent();
+var Destroy = defineComponent();
+var components2 = {
+  Position,
+  Health,
+  Progress,
+  Cooldown,
+  Projectile,
+  Enemy,
+  Tower,
+  Destroy
+};
+
+// src/lib/ecs_maps.ts
+var graphicsByEntity = new Map;
+var entityTypes = new Map;
+var projectileDamageTypes = new Map;
+var towerUpgrades = new Map;
+var towerRangeGraphics = new Map;
+
+// src/lib/tower.ts
+var tower_size = 20;
+var { Position: Position2, Tower: Tower2, Cooldown: Cooldown2 } = components2;
+function tower_create(world, type, pos, elements) {
+  const config = elements.towers[type];
+  if (!config) {
+    should_never_happen(`Invalid tower type: ${type}`);
+    return -1;
   }
-  root.appendChild(modal_el);
+  const eid = addEntity(world);
+  addComponent(world, Tower2, eid);
+  addComponent(world, Position2, eid);
+  addComponent(world, Cooldown2, eid);
+  Position2.x[eid] = pos.x;
+  Position2.y[eid] = pos.y;
+  Cooldown2.timer[eid] = 0;
+  const graphics = new Container;
+  const body = new Graphics().rect(-tower_size / 2, -tower_size / 2, tower_size, tower_size).fill(config.color);
+  graphics.addChild(body);
+  graphics.position.set(pos.x, pos.y);
+  graphics.eventMode = "static";
+  graphics.on("pointerover", (e2) => {
+    const native = e2.nativeEvent;
+    tower_show_range(eid, true);
+    game_tooltip_show(eid, native.clientX, native.clientY);
+  });
+  graphics.on("pointerout", () => {
+    if (game_state.selected_existing_tower !== eid) {
+      tower_show_range(eid, false);
+    }
+    game_tooltip_hide();
+  });
+  if (containers_tower) {
+    containers_tower.addChild(graphics);
+  }
+  graphicsByEntity.set(eid, graphics);
+  entityTypes.set(eid, type);
+  towerUpgrades.set(eid, []);
+  const range_graphics = new Graphics;
+  graphics.addChild(range_graphics);
+  towerRangeGraphics.set(eid, range_graphics);
+  return eid;
+}
+function tower_show_range(eid, show) {
+  if (!game_elements)
+    return;
+  const type = entityTypes.get(eid);
+  if (!type)
+    return;
+  const config = game_elements.towers[type];
+  if (!config)
+    return;
+  const effective_range = tower_get_effective_range(eid, config);
+  const range_graphics = towerRangeGraphics.get(eid);
+  if (!range_graphics)
+    return;
+  if (show) {
+    range_graphics.clear();
+    range_graphics.circle(0, 0, effective_range);
+    range_graphics.stroke({ width: 2, color: 16777215, alpha: 0.5 });
+  }
+  range_graphics.visible = show;
+}
+function tower_get_effective_damage(eid, config) {
+  let damage = config.damage;
+  const upgrades = towerUpgrades.get(eid) || [];
+  for (const upgrade of upgrades) {
+    const up = config.upgrades.find((u3) => u3.name === upgrade);
+    if (up?.effect.damage)
+      damage += up.effect.damage;
+  }
+  return damage;
+}
+function tower_get_effective_range(eid, config) {
+  let range = config.range;
+  const upgrades = towerUpgrades.get(eid) || [];
+  for (const upgrade of upgrades) {
+    const up = config.upgrades.find((u3) => u3.name === upgrade);
+    if (up?.effect.range)
+      range += up.effect.range;
+  }
+  return range;
+}
+function tower_get_effective_fire_rate(eid, config) {
+  let fire_rate = config.fire_rate;
+  const upgrades = towerUpgrades.get(eid) || [];
+  for (const upgrade of upgrades) {
+    const up = config.upgrades.find((u3) => u3.name === upgrade);
+    if (up?.effect.fire_rate)
+      fire_rate += up.effect.fire_rate;
+  }
+  return fire_rate;
+}
+function tower_add_upgrade_indicator(eid, upgrade_name) {
+  const graphics = graphicsByEntity.get(eid);
+  if (!graphics)
+    return;
+  const indicator = new Graphics().circle(0, 0, 5);
+  let color = 16777215;
+  if (upgrade_name.includes("damage"))
+    color = 16711680;
+  else if (upgrade_name.includes("range"))
+    color = 65280;
+  else if (upgrade_name.includes("fire_rate"))
+    color = 255;
+  indicator.fill(color);
+  const upgrades = towerUpgrades.get(eid) || [];
+  const index = upgrades.length - 1;
+  indicator.position.set(-10 + index * 10, -15);
+  graphics.addChild(indicator);
+}
+
+// src/lib/enemy.ts
+var enemy_radius = 10;
+var { Position: Position3, Enemy: Enemy2, Progress: Progress2, Health: Health2 } = components2;
+function get_color_for_enemy_type(type) {
+  switch (type) {
+    case "basic":
+      return 65280;
+    case "fast":
+      return 16776960;
+    case "armored":
+      return 8421504;
+    case "flying":
+      return 65535;
+    case "boss":
+      return 16711935;
+    case "undead":
+      return 8388736;
+    default:
+      return 16711680;
+  }
+}
+function enemy_create(world, enemy_type, elements, path_config) {
+  const config = elements.enemies[enemy_type];
+  if (!config) {
+    should_never_happen(`Invalid enemy type: ${enemy_type}`);
+    return -1;
+  }
+  const eid = addEntity(world);
+  addComponent(world, Enemy2, eid);
+  addComponent(world, Position3, eid);
+  addComponent(world, Health2, eid);
+  addComponent(world, Progress2, eid);
+  Progress2.value[eid] = 0;
+  Health2.value[eid] = config.health;
+  const start_pos = path_get_position(path_config, 0);
+  Position3.x[eid] = start_pos.x;
+  Position3.y[eid] = start_pos.y;
+  const graphics = new Container;
+  const body = new Graphics().circle(0, 0, enemy_radius);
+  body.stroke({ width: 1, color: 0 });
+  body.fill(get_color_for_enemy_type(enemy_type));
+  graphics.addChild(body);
+  graphics.position.set(start_pos.x, start_pos.y);
+  if (containers_enemy) {
+    containers_enemy.addChild(graphics);
+  }
+  graphicsByEntity.set(eid, graphics);
+  entityTypes.set(eid, enemy_type);
+  return eid;
 }
 
 // src/lib/projectile.ts
 var projectile_speed = 300;
 var projectile_radius = 5;
-function projectile_create(start_pos, target, damage, damage_type) {
-  const graphics = new Graphics;
-  graphics.circle(0, 0, projectile_radius);
+
+// src/lib/systems.ts
+var { Position: Position4, Health: Health3, Progress: Progress3, Cooldown: Cooldown3, Projectile: Projectile2, Enemy: Enemy3, Tower: Tower3, Destroy: Destroy2 } = components2;
+var enemyQuery = defineQuery([Enemy3, Position4, Progress3, Health3]);
+var towerQuery = defineQuery([Tower3, Position4, Cooldown3]);
+var projectileQuery = defineQuery([Projectile2, Position4]);
+var destroyQuery = defineQuery([Destroy2]);
+function systems_enemy_movement(world, delta_seconds, elements, path_config, events) {
+  const ents = enemyQuery(world);
+  for (let i2 = 0;i2 < ents.length; i2++) {
+    const eid = ents[i2];
+    if (eid && Health3.value[eid] <= 0) {
+      events.push({ type: "enemy_killed", eid });
+      addComponent(world, Destroy2, eid);
+      continue;
+    }
+    const type = eid ? entityTypes.get(eid) : undefined;
+    if (!type)
+      continue;
+    const config = elements.enemies[type];
+    if (!config)
+      continue;
+    if (eid) {
+      Progress3.value[eid] += config.speed * delta_seconds / path_config.total_length;
+      if (Progress3.value[eid] >= 1) {
+        events.push({ type: "enemy_reached", eid });
+        addComponent(world, Destroy2, eid);
+        continue;
+      }
+    }
+    if (!eid)
+      continue;
+    const pos = path_get_position(path_config, Progress3.value[eid]);
+    Position4.x[eid] = pos.x;
+    Position4.y[eid] = pos.y;
+    const graphics = graphicsByEntity.get(eid);
+    if (!graphics)
+      continue;
+    graphics.position.set(pos.x, pos.y);
+    const dir = path_get_direction(path_config, Progress3.value[eid]);
+    graphics.rotation = Math.atan2(dir.dy, dir.dx);
+  }
+}
+function systems_tower_attack(world, delta_seconds, elements, enemy_eids) {
+  const ents = towerQuery(world);
+  for (let i2 = 0;i2 < ents.length; i2++) {
+    const eid = ents[i2];
+    if (!eid)
+      continue;
+    Cooldown3.timer[eid] -= delta_seconds;
+    if (Cooldown3.timer[eid] > 0)
+      continue;
+    const type = entityTypes.get(eid);
+    if (!type)
+      continue;
+    const config = elements.towers[type];
+    if (!config)
+      continue;
+    const effective_range = tower_get_effective_range(eid, config);
+    let closest_enemy = null;
+    let min_dist = Infinity;
+    for (const enemy_eid of enemy_eids) {
+      if (!hasComponent(world, Position4, enemy_eid))
+        continue;
+      const dx = Position4.x[enemy_eid] - Position4.x[eid];
+      const dy = Position4.y[enemy_eid] - Position4.y[eid];
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < effective_range && dist < min_dist) {
+        min_dist = dist;
+        closest_enemy = enemy_eid;
+      }
+    }
+    if (closest_enemy !== null) {
+      systems_projectile_create(world, eid, closest_enemy, elements);
+      const effective_fire_rate = tower_get_effective_fire_rate(eid, config);
+      Cooldown3.timer[eid] = 1 / effective_fire_rate;
+    }
+  }
+}
+function systems_projectile_update(world, delta_seconds, elements) {
+  const ents = projectileQuery(world);
+  for (let i2 = 0;i2 < ents.length; i2++) {
+    const eid = ents[i2];
+    if (!eid)
+      continue;
+    const target = Projectile2.target[eid];
+    if (!hasComponent(world, Position4, target) || !hasComponent(world, Health3, target)) {
+      addComponent(world, Destroy2, eid);
+      continue;
+    }
+    const dx = Position4.x[target] - Position4.x[eid];
+    const dy = Position4.y[target] - Position4.y[eid];
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < projectile_radius) {
+      systems_projectile_apply_damage(world, eid, target, elements);
+      addComponent(world, Destroy2, eid);
+      continue;
+    }
+    const move_dist = projectile_speed * delta_seconds;
+    const ratio = move_dist / dist;
+    if (ratio > 1) {
+      Position4.x[eid] = Position4.x[target];
+      Position4.y[eid] = Position4.y[target];
+    } else {
+      Position4.x[eid] += dx * ratio;
+      Position4.y[eid] += dy * ratio;
+    }
+    const graphics = graphicsByEntity.get(eid);
+    if (!graphics)
+      continue;
+    graphics.position.set(Position4.x[eid], Position4.y[eid]);
+  }
+}
+function systems_projectile_create(world, tower_eid, target_eid, elements) {
+  const type = entityTypes.get(tower_eid);
+  if (!type)
+    return;
+  const config = elements.towers[type];
+  if (!config)
+    return;
+  const damage = tower_get_effective_damage(tower_eid, config);
+  const damage_type = config.damage_type;
+  const eid = addEntity(world);
+  addComponent(world, Projectile2, eid);
+  addComponent(world, Position4, eid);
+  Position4.x[eid] = Position4.x[tower_eid];
+  Position4.y[eid] = Position4.y[tower_eid];
+  Projectile2.target[eid] = target_eid;
+  Projectile2.damage[eid] = damage;
+  const graphics = new Container;
+  const body = new Graphics().circle(0, 0, projectile_radius);
   let color = 16777215;
   switch (damage_type) {
     case "physical":
@@ -32361,205 +33220,53 @@ function projectile_create(start_pos, target, damage, damage_type) {
       color = 16776960;
       break;
   }
-  graphics.fill(color);
-  graphics.position.set(start_pos.x, start_pos.y);
-  if (!containers_projectile) {
-    should_never_happen("Projectile container not found");
-  } else {
+  body.fill(color);
+  graphics.addChild(body);
+  graphics.position.set(Position4.x[eid], Position4.y[eid]);
+  if (containers_projectile) {
     containers_projectile.addChild(graphics);
   }
-  return {
-    graphics,
-    position: { x: start_pos.x, y: start_pos.y },
-    target,
-    damage,
-    damage_type,
-    speed: projectile_speed
-  };
+  graphicsByEntity.set(eid, graphics);
+  projectileDamageTypes.set(eid, damage_type);
 }
-function projectile_update(projectile, delta_seconds, elements) {
-  if (game_state.enemies.indexOf(projectile.target) === -1) {
-    projectile_destroy(projectile);
-    return true;
-  }
-  const dx = projectile.target.graphics.x - projectile.position.x;
-  const dy = projectile.target.graphics.y - projectile.position.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  if (dist < projectile_radius) {
-    projectile_apply_damage(projectile, projectile.target, elements);
-    projectile_destroy(projectile);
-    return true;
-  }
-  const move_dist = projectile.speed * delta_seconds;
-  const ratio = move_dist / dist;
-  if (ratio > 1) {
-    projectile.position.x = projectile.target.graphics.x;
-    projectile.position.y = projectile.target.graphics.y;
-  } else {
-    projectile.position.x += dx * ratio;
-    projectile.position.y += dy * ratio;
-  }
-  projectile.graphics.position.set(projectile.position.x, projectile.position.y);
-  return false;
-}
-function projectile_apply_damage(projectile, enemy, elements) {
-  const config = elements.enemies[enemy.type];
-  if (!config) {
-    should_never_happen(`Invalid enemy type: ${enemy.type}`);
+function systems_projectile_apply_damage(_2, proj_eid, target_eid, elements) {
+  const target_type = entityTypes.get(target_eid);
+  if (!target_type)
     return;
-  }
-  const resistance = config.resistances[projectile.damage_type];
-  const effective_damage = projectile.damage * resistance;
-  enemy.health -= effective_damage;
-  if (enemy.health <= 0) {
-    enemy.health = 0;
-  }
+  const config = elements.enemies[target_type];
+  if (!config)
+    return;
+  const damage_type = projectileDamageTypes.get(proj_eid);
+  if (!damage_type)
+    return;
+  const resistance = config.resistances[damage_type] ?? 1;
+  const effective_damage = Projectile2.damage[proj_eid] * resistance;
+  Health3.value[target_eid] -= effective_damage;
+  if (Health3.value[target_eid] < 0)
+    Health3.value[target_eid] = 0;
 }
-function projectile_destroy(projectile) {
-  if (projectile.graphics.parent) {
-    projectile.graphics.parent.removeChild(projectile.graphics);
-  }
-  projectile.graphics.destroy();
-}
-
-// src/lib/tower.ts
-var tower_size = 20;
-function tower_create(type, pos, elements) {
-  const config = elements.towers[type];
-  if (!config) {
-    should_never_happen(`Invalid tower type: ${type}`);
-    return {};
-  }
-  const graphics = new Graphics;
-  graphics.rect(-tower_size / 2, -tower_size / 2, tower_size, tower_size);
-  graphics.fill(config.color);
-  graphics.position.set(pos.x, pos.y);
-  if (!containers_tower) {
-    should_never_happen("Tower container not found");
-  } else {
-    containers_tower.addChild(graphics);
-  }
-  const tower = {
-    type,
-    position: pos,
-    upgrades: [],
-    graphics,
-    last_fire_time: 0,
-    cooldown_timer: 0
-  };
-  graphics.eventMode = "static";
-  graphics.onpointerover = (e2) => {
-    const nativeEvent = e2.nativeEvent;
-    tower_show_range(tower, true);
-    game_tooltip_show(tower, nativeEvent.clientX, nativeEvent.clientY);
-  };
-  graphics.onpointerout = () => {
-    if (game_state.selected_existing_tower !== tower) {
-      tower_show_range(tower, false);
+function systems_cleanup(world) {
+  const ents = destroyQuery(world);
+  for (let i2 = 0;i2 < ents.length; i2++) {
+    const eid = ents[i2];
+    if (!eid)
+      continue;
+    const graphics = graphicsByEntity.get(eid);
+    if (graphics) {
+      if (graphics.parent)
+        graphics.parent.removeChild(graphics);
+      graphics.destroy({ children: true });
+      graphicsByEntity.delete(eid);
     }
-    game_tooltip_hide();
-  };
-  if (!containers_tower) {
-    should_never_happen("Tower container not found");
-  } else {
-    containers_tower.addChild(graphics);
+    entityTypes.delete(eid);
+    projectileDamageTypes.delete(eid);
+    towerUpgrades.delete(eid);
+    removeEntity(world, eid);
   }
-  return tower;
-}
-function tower_show_range(tower, show) {
-  if (!game_elements)
-    return;
-  const config = game_elements.towers[tower.type];
-  if (!config) {
-    should_never_happen(`Invalid tower type: ${tower.type}`);
-    return;
-  }
-  const effective_range = tower_get_effective_range(tower, config);
-  if (show) {
-    if (!tower.range_graphics) {
-      tower.range_graphics = new Graphics;
-      tower.graphics.addChild(tower.range_graphics);
-    }
-    tower.range_graphics.clear();
-    tower.range_graphics.circle(0, 0, effective_range);
-    tower.range_graphics.stroke({ width: 2, color: 16777215, alpha: 0.5 });
-    tower.range_graphics.visible = true;
-  } else if (tower.range_graphics) {
-    tower.range_graphics.visible = false;
-  }
-}
-function tower_get_effective_damage(tower, config) {
-  let damage = config.damage;
-  for (const upgrade of tower.upgrades) {
-    const up = config.upgrades.find((u3) => u3.name === upgrade);
-    if (up?.effect.damage)
-      damage += up.effect.damage;
-  }
-  return damage;
-}
-function tower_get_effective_range(tower, config) {
-  let range = config.range;
-  for (const upgrade of tower.upgrades) {
-    const up = config.upgrades.find((u3) => u3.name === upgrade);
-    if (up?.effect.range)
-      range += up.effect.range;
-  }
-  return range;
-}
-function tower_get_effective_fire_rate(tower, config) {
-  let fire_rate = config.fire_rate;
-  for (const upgrade of tower.upgrades) {
-    const up = config.upgrades.find((u3) => u3.name === upgrade);
-    if (up?.effect.fire_rate)
-      fire_rate += up.effect.fire_rate;
-  }
-  return fire_rate;
-}
-function tower_update(tower, delta_seconds, elements) {
-  tower.cooldown_timer -= delta_seconds;
-  if (tower.cooldown_timer > 0)
-    return;
-  const config = elements.towers[tower.type];
-  if (!config) {
-    should_never_happen(`Invalid tower type: ${tower.type}`);
-    return;
-  }
-  const effective_range = tower_get_effective_range(tower, config);
-  let closest_enemy = null;
-  let min_dist = Infinity;
-  for (const enemy of game_state.enemies) {
-    const dist = path_distance(tower.position, enemy.graphics.position);
-    if (dist < effective_range && dist < min_dist) {
-      min_dist = dist;
-      closest_enemy = enemy;
-    }
-  }
-  if (closest_enemy) {
-    const damage = tower_get_effective_damage(tower, config);
-    const projectile = projectile_create(tower.position, closest_enemy, damage, config.damage_type);
-    game_state.projectiles.push(projectile);
-    const effective_fire_rate = tower_get_effective_fire_rate(tower, config);
-    const cooldown = 1 / effective_fire_rate;
-    tower.cooldown_timer = cooldown;
-  }
-}
-function tower_add_upgrade_indicator(tower, upgrade_name) {
-  const indicator = new Graphics;
-  indicator.circle(0, 0, 5);
-  let color = 16777215;
-  if (upgrade_name.includes("damage"))
-    color = 16711680;
-  else if (upgrade_name.includes("range"))
-    color = 65280;
-  else if (upgrade_name.includes("fire_rate"))
-    color = 255;
-  indicator.fill(color);
-  const index = tower.upgrades.length - 1;
-  indicator.position.set(-10 + index * 10, -15);
-  tower.graphics.addChild(indicator);
 }
 
 // src/lib/game.ts
+var { Position: Position5 } = components2;
 var tower_size2 = 20;
 var tooltip = null;
 var game_state = {
@@ -32576,40 +33283,39 @@ var game_state = {
   projectiles: [],
   paused: false,
   recent_messages: [],
-  waiting_for_next_wave: false
+  waiting_for_next_wave: false,
+  events: []
 };
 var game_path_config = null;
 var game_elements = null;
+var world = null;
+var ghost_tower = null;
+var previous_footer_mode = "none";
 var wave_info_el = null;
 var lives_el = null;
 var gold_el = null;
 var footer_el = null;
 var side_left_el = null;
-var ghost_tower = null;
-var previous_footer_mode = "none";
 function game_init(elements) {
   const viewport = app_viewport_get();
-  if (!viewport) {
-    should_never_happen("Viewport not found");
+  if (!viewport)
     return;
-  }
   game_elements = elements;
   containers_init(viewport);
   game_path_config = path_generate(elements.mission.enemy_path);
-  if (game_path_config) {
+  if (game_path_config)
     map_draw_path(game_path_config);
-  }
   game_state.gold = elements.mission.starting_gold;
   game_state.lives = elements.mission.starting_lives;
+  world = createWorld();
   wave_info_el = document.getElementById("wave-info");
   lives_el = document.getElementById("lives");
   gold_el = document.getElementById("gold");
   footer_el = document.getElementById("hud-footer");
   side_left_el = document.getElementById("hud-side-left");
   const mission_name_el = document.getElementById("mission-name");
-  if (mission_name_el) {
+  if (mission_name_el)
     mission_name_el.textContent = elements.mission.name;
-  }
   tooltip = document.createElement("div");
   tooltip.classList.add("tooltip");
   tooltip.style.position = "absolute";
@@ -32644,10 +33350,8 @@ function game_init(elements) {
       if (game_elements) {
         for (const type in game_elements.towers) {
           const config = game_elements.towers[type];
-          if (!config) {
-            should_never_happen(`Invalid tower type: ${type}`);
+          if (!config)
             continue;
-          }
           if (config.hotkey && e2.key.toUpperCase() === config.hotkey.toUpperCase()) {
             game_select_tower_type(type);
             break;
@@ -32679,42 +33383,35 @@ function game_update(ticker) {
   } else {
     game_state.wave_timer += delta_seconds;
   }
-  const prev_enemies_length = game_state.enemies.length;
+  systems_projectile_update(world, delta_seconds, game_elements);
+  systems_enemy_movement(world, delta_seconds, game_elements, game_path_config, game_state.events);
+  systems_tower_attack(world, delta_seconds, game_elements, game_state.enemies);
   let gold_changed = false;
-  game_state.enemies = game_state.enemies.filter((enemy) => {
-    if (!game_elements) {
-      should_never_happen("Game elements not found");
-      return false;
-    }
-    if (!game_path_config) {
-      should_never_happen("Path config not found");
-      return false;
-    }
-    const reached_end = enemy_update(enemy, delta_seconds, game_elements, game_path_config);
-    if (reached_end) {
-      add_message(`${enemy.type} reached end! -1 life`);
+  for (const event of game_state.events) {
+    const type = entityTypes.get(event.eid);
+    if (!type)
+      continue;
+    const config = game_elements.enemies[type];
+    if (!config)
+      continue;
+    if (event.type === "enemy_killed") {
+      add_message(`Killed ${type} +${config.value} gold`);
+      game_state.gold += config.value;
+      gold_changed = true;
+    } else if (event.type === "enemy_reached") {
+      add_message(`${type} reached end! -1 life`);
       game_state.lives--;
       if (game_state.lives <= 0) {
         Ticker.shared.remove(game_update);
         modal_show_defeat();
       }
-      enemy_destroy(enemy);
-      return false;
     }
-    if (enemy.health <= 0) {
-      const config = game_elements.enemies[enemy.type];
-      if (!config) {
-        should_never_happen(`Invalid enemy type: ${enemy.type}`);
-        return false;
-      }
-      add_message(`Killed ${enemy.type} +${config.value} gold`);
-      game_state.gold += config.value;
-      gold_changed = true;
-      enemy_destroy(enemy);
-      return false;
-    }
-    return true;
-  });
+  }
+  game_state.events = [];
+  systems_cleanup(world);
+  const prev_enemies_length = game_state.enemies.length;
+  game_state.enemies = game_state.enemies.filter((eid) => entityTypes.has(eid));
+  game_state.projectiles = game_state.projectiles.filter((eid) => entityTypes.has(eid));
   const no_enemies = game_state.enemies.length === 0;
   if (no_enemies && prev_enemies_length > 0 && game_state.current_wave > 0 && !game_state.waiting_for_next_wave) {
     game_state.waiting_for_next_wave = true;
@@ -32729,21 +33426,9 @@ function game_update(ticker) {
       modal_show_victory();
     }
   }
-  for (const tower of game_state.towers) {
-    if (game_elements) {
-      tower_update(tower, delta_seconds, game_elements);
-    }
-  }
-  game_state.projectiles = game_state.projectiles.filter((proj) => {
-    if (game_elements) {
-      return !projectile_update(proj, delta_seconds, game_elements);
-    }
-    return false;
-  });
   game_hud_update();
-  if (gold_changed) {
+  if (gold_changed)
     game_update_footer();
-  }
   if (game_state.enemies.length === 0 && game_state.wave_timer >= game_elements.mission.wave_interval && game_state.current_wave > 0 && game_state.current_wave < game_elements.mission.total_waves) {
     game_start_next_wave();
   }
@@ -32784,10 +33469,12 @@ function game_handle_canvas_click(e2) {
     game_try_place_tower(pos);
   } else {
     let clicked_tower = null;
-    for (const tower of game_state.towers) {
+    for (const tid of game_state.towers) {
       const half_size = tower_size2 / 2;
-      if (pos.x >= tower.position.x - half_size && pos.x <= tower.position.x + half_size && pos.y >= tower.position.y - half_size && pos.y <= tower.position.y + half_size) {
-        clicked_tower = tower;
+      if (!Position5.x[tid] || !Position5.y[tid])
+        continue;
+      if (pos.x >= Position5.x[tid] - half_size && pos.x <= Position5.x[tid] + half_size && pos.y >= Position5.y[tid] - half_size && pos.y <= Position5.y[tid] + half_size) {
+        clicked_tower = tid;
         break;
       }
     }
@@ -32826,12 +33513,13 @@ function game_handle_canvas_mousemove(e2) {
   ghost_tower.tint = tint;
 }
 function is_position_overlapping_tower(pos) {
-  for (const tower of game_state.towers) {
-    const dx = Math.abs(pos.x - tower.position.x);
-    const dy = Math.abs(pos.y - tower.position.y);
-    if (dx < tower_size2 && dy < tower_size2) {
+  for (const tid of game_state.towers) {
+    if (!Position5.x[tid] || !Position5.y[tid])
+      continue;
+    const dx = Math.abs(pos.x - Position5.x[tid]);
+    const dy = Math.abs(pos.y - Position5.y[tid]);
+    if (dx < tower_size2 && dy < tower_size2)
       return true;
-    }
   }
   return false;
 }
@@ -32858,8 +33546,10 @@ function game_try_place_tower(pos) {
   if (game_state.gold < config.cost)
     return;
   game_state.gold -= config.cost;
-  const tower = tower_create(type, pos, game_elements);
-  game_state.towers.push(tower);
+  const eid = tower_create(world, type, pos, game_elements);
+  if (eid === -1)
+    return;
+  game_state.towers.push(eid);
   add_message(`Placed ${config.name} tower for ${config.cost} gold`);
   game_hud_update();
   game_update_footer();
@@ -32889,13 +33579,13 @@ function game_select_tower_type(type) {
   }
   game_update_footer();
 }
-function game_select_existing_tower(tower) {
+function game_select_existing_tower(eid) {
   if (game_state.selected_existing_tower) {
     tower_show_range(game_state.selected_existing_tower, false);
   }
-  game_state.selected_existing_tower = tower;
+  game_state.selected_existing_tower = eid;
   game_state.selected_tower_type = null;
-  tower_show_range(tower, true);
+  tower_show_range(eid, true);
   if (game_elements) {
     for (const t2 in game_elements.towers) {
       const btn = document.getElementById(`tower-btn-${t2}`);
@@ -32963,8 +33653,10 @@ function game_start_next_wave() {
           should_never_happen("Path config not found");
           return;
         }
-        const enemy = enemy_create(group.type, game_elements, game_path_config);
-        game_state.enemies.push(enemy);
+        const eid = enemy_create(world, group.type, game_elements, game_path_config);
+        if (eid === -1)
+          return;
+        game_state.enemies.push(eid);
       }, spawn_time);
       spawn_time += Math.random() * 3900 + 100;
     }
@@ -33074,17 +33766,21 @@ function game_update_footer() {
       info_div.textContent = `Selected: ${config.name} - Click on map to place (Esc to cancel)`;
       footer_el.appendChild(info_div);
     } else if (mode === "upgrade") {
-      const tower = game_state.selected_existing_tower;
-      const config = game_elements.towers[tower.type];
+      const selected = game_state.selected_existing_tower;
+      const type = entityTypes.get(selected);
+      if (!type)
+        return;
+      const config = game_elements.towers[type];
       if (!config)
         return;
       const stats_div = document.createElement("div");
       stats_div.id = "tower-stats";
       stats_div.classList.add("stats-div", "is-size-5", "mr-4");
-      stats_div.textContent = `Damage: ${tower_get_effective_damage(tower, config)} | Range: ${tower_get_effective_range(tower, config)} | Fire Rate: ${tower_get_effective_fire_rate(tower, config).toFixed(1)} | Type: ${config.damage_type}`;
+      stats_div.textContent = `Damage: ${tower_get_effective_damage(selected, config)} | Range: ${tower_get_effective_range(selected, config)} | Fire Rate: ${tower_get_effective_fire_rate(selected, config).toFixed(1)} | Type: ${config.damage_type}`;
       footer_el.appendChild(stats_div);
+      const upgrades = towerUpgrades.get(selected) || [];
       for (const up of config.upgrades) {
-        if (tower.upgrades.includes(up.name))
+        if (upgrades.includes(up.name))
           continue;
         const up_btn = document.createElement("button");
         up_btn.id = `upgrade-${up.name}`;
@@ -33092,15 +33788,16 @@ function game_update_footer() {
         up_btn.textContent = `${up.display_name} (${up.cost})`;
         up_btn.disabled = game_state.gold < up.cost;
         up_btn.onclick = () => {
-          if (game_state.gold >= up.cost && !tower.upgrades.includes(up.name)) {
+          if (game_state.gold >= up.cost && !upgrades.includes(up.name)) {
             game_state.gold -= up.cost;
-            tower.upgrades.push(up.name);
-            tower_show_range(tower, true);
+            upgrades.push(up.name);
+            towerUpgrades.set(selected, upgrades);
+            tower_show_range(selected, true);
             add_message(`Upgraded tower with ${up.display_name} for ${up.cost} gold`);
             game_hud_update();
             previous_footer_mode = "none";
             game_update_footer();
-            tower_add_upgrade_indicator(tower, up.name);
+            tower_add_upgrade_indicator(selected, up.name);
           }
         };
         footer_el.appendChild(up_btn);
@@ -33116,18 +33813,24 @@ function game_update_footer() {
       info_el.textContent = `Selected: ${config.name} - Click on map to place (Esc to cancel)`;
     }
   } else if (mode === "upgrade") {
-    const tower = game_state.selected_existing_tower;
-    const config = game_elements.towers[tower.type];
+    const selected = game_state.selected_existing_tower;
+    const type = entityTypes.get(selected);
+    if (!type) {
+      should_never_happen(`Invalid tower type`);
+      return;
+    }
+    const config = game_elements.towers[type];
     if (!config) {
-      should_never_happen(`Invalid tower type: ${tower.type}`);
+      should_never_happen(`Invalid tower type: ${type}`);
       return;
     }
     const stats_el = document.getElementById("tower-stats");
     if (stats_el) {
-      stats_el.textContent = `Damage: ${tower_get_effective_damage(tower, config)} | Range: ${tower_get_effective_range(tower, config)} | Fire Rate: ${tower_get_effective_fire_rate(tower, config).toFixed(1)} | Type: ${config.damage_type}`;
+      stats_el.textContent = `Damage: ${tower_get_effective_damage(selected, config)} | Range: ${tower_get_effective_range(selected, config)} | Fire Rate: ${tower_get_effective_fire_rate(selected, config).toFixed(1)} | Type: ${config.damage_type}`;
     }
+    const upgrades = towerUpgrades.get(selected) || [];
     for (const up of config.upgrades) {
-      if (tower.upgrades.includes(up.name))
+      if (upgrades.includes(up.name))
         continue;
       const up_btn = document.getElementById(`upgrade-${up.name}`);
       if (up_btn) {
@@ -33136,21 +33839,20 @@ function game_update_footer() {
     }
   }
 }
-function game_tooltip_show(tower, clientX, clientY) {
+function game_tooltip_show(eid, clientX, clientY) {
   if (!game_elements || !tooltip)
     return;
-  const config = game_elements.towers[tower.type];
-  if (!config) {
-    should_never_happen(`Invalid tower type: ${tower.type}`);
+  const type = entityTypes.get(eid);
+  if (!type)
     return;
-  }
-  const damage = tower_get_effective_damage(tower, config);
-  const range = tower_get_effective_range(tower, config);
-  const fire_rate = tower_get_effective_fire_rate(tower, config);
-  const upgrades_list = tower.upgrades.length > 0 ? tower.upgrades.map((up) => {
-    const up_config = config.upgrades.find((u3) => u3.name === up);
-    return up_config ? up_config.display_name : up;
-  }).join(", ") : "None";
+  const config = game_elements.towers[type];
+  if (!config)
+    return;
+  const damage = tower_get_effective_damage(eid, config);
+  const range = tower_get_effective_range(eid, config);
+  const fire_rate = tower_get_effective_fire_rate(eid, config);
+  const upgrades = towerUpgrades.get(eid) || [];
+  const upgrades_list = upgrades.length > 0 ? upgrades.map((up) => config.upgrades.find((u3) => u3.name === up)?.display_name || up).join(", ") : "None";
   tooltip.innerHTML = `
     Damage: ${damage}<br>
     Range: ${range}<br>
@@ -33163,10 +33865,584 @@ function game_tooltip_show(tower, clientX, clientY) {
   tooltip.style.display = "block";
 }
 function game_tooltip_hide() {
-  if (tooltip) {
+  if (tooltip)
     tooltip.style.display = "none";
+}
+
+// node_modules/valibot/dist/index.js
+var store;
+function getGlobalConfig(config2) {
+  return {
+    lang: config2?.lang ?? store?.lang,
+    message: config2?.message,
+    abortEarly: config2?.abortEarly ?? store?.abortEarly,
+    abortPipeEarly: config2?.abortPipeEarly ?? store?.abortPipeEarly
+  };
+}
+var store2;
+function getGlobalMessage(lang) {
+  return store2?.get(lang);
+}
+var store3;
+function getSchemaMessage(lang) {
+  return store3?.get(lang);
+}
+var store4;
+function getSpecificMessage(reference, lang) {
+  return store4?.get(reference)?.get(lang);
+}
+function _stringify(input) {
+  const type = typeof input;
+  if (type === "string") {
+    return `"${input}"`;
+  }
+  if (type === "number" || type === "bigint" || type === "boolean") {
+    return `${input}`;
+  }
+  if (type === "object" || type === "function") {
+    return (input && Object.getPrototypeOf(input)?.constructor?.name) ?? "null";
+  }
+  return type;
+}
+function _addIssue(context2, label, dataset, config2, other) {
+  const input = other && "input" in other ? other.input : dataset.value;
+  const expected = other?.expected ?? context2.expects ?? null;
+  const received = other?.received ?? _stringify(input);
+  const issue = {
+    kind: context2.kind,
+    type: context2.type,
+    input,
+    expected,
+    received,
+    message: `Invalid ${label}: ${expected ? `Expected ${expected} but r` : "R"}eceived ${received}`,
+    requirement: context2.requirement,
+    path: other?.path,
+    issues: other?.issues,
+    lang: config2.lang,
+    abortEarly: config2.abortEarly,
+    abortPipeEarly: config2.abortPipeEarly
+  };
+  const isSchema = context2.kind === "schema";
+  const message2 = other?.message ?? context2.message ?? getSpecificMessage(context2.reference, issue.lang) ?? (isSchema ? getSchemaMessage(issue.lang) : null) ?? config2.message ?? getGlobalMessage(issue.lang);
+  if (message2 !== undefined) {
+    issue.message = typeof message2 === "function" ? message2(issue) : message2;
+  }
+  if (isSchema) {
+    dataset.typed = false;
+  }
+  if (dataset.issues) {
+    dataset.issues.push(issue);
+  } else {
+    dataset.issues = [issue];
   }
 }
+function _getStandardProps(context2) {
+  return {
+    version: 1,
+    vendor: "valibot",
+    validate(value2) {
+      return context2["~run"]({ value: value2 }, getGlobalConfig());
+    }
+  };
+}
+function _isValidObjectKey(object2, key) {
+  return Object.hasOwn(object2, key) && key !== "__proto__" && key !== "prototype" && key !== "constructor";
+}
+function _joinExpects(values2, separator) {
+  const list = [...new Set(values2)];
+  if (list.length > 1) {
+    return `(${list.join(` ${separator} `)})`;
+  }
+  return list[0] ?? "never";
+}
+var ValiError = class extends Error {
+  constructor(issues) {
+    super(issues[0].message);
+    this.name = "ValiError";
+    this.issues = issues;
+  }
+};
+function getFallback(schema, dataset, config2) {
+  return typeof schema.fallback === "function" ? schema.fallback(dataset, config2) : schema.fallback;
+}
+function getDefault(schema, dataset, config2) {
+  return typeof schema.default === "function" ? schema.default(dataset, config2) : schema.default;
+}
+function array(item, message2) {
+  return {
+    kind: "schema",
+    type: "array",
+    reference: array,
+    expects: "Array",
+    async: false,
+    item,
+    message: message2,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      const input = dataset.value;
+      if (Array.isArray(input)) {
+        dataset.typed = true;
+        dataset.value = [];
+        for (let key = 0;key < input.length; key++) {
+          const value2 = input[key];
+          const itemDataset = this.item["~run"]({ value: value2 }, config2);
+          if (itemDataset.issues) {
+            const pathItem = {
+              type: "array",
+              origin: "value",
+              input,
+              key,
+              value: value2
+            };
+            for (const issue of itemDataset.issues) {
+              if (issue.path) {
+                issue.path.unshift(pathItem);
+              } else {
+                issue.path = [pathItem];
+              }
+              dataset.issues?.push(issue);
+            }
+            if (!dataset.issues) {
+              dataset.issues = itemDataset.issues;
+            }
+            if (config2.abortEarly) {
+              dataset.typed = false;
+              break;
+            }
+          }
+          if (!itemDataset.typed) {
+            dataset.typed = false;
+          }
+          dataset.value.push(itemDataset.value);
+        }
+      } else {
+        _addIssue(this, "type", dataset, config2);
+      }
+      return dataset;
+    }
+  };
+}
+function literal(literal_, message2) {
+  return {
+    kind: "schema",
+    type: "literal",
+    reference: literal,
+    expects: _stringify(literal_),
+    async: false,
+    literal: literal_,
+    message: message2,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      if (dataset.value === this.literal) {
+        dataset.typed = true;
+      } else {
+        _addIssue(this, "type", dataset, config2);
+      }
+      return dataset;
+    }
+  };
+}
+function number(message2) {
+  return {
+    kind: "schema",
+    type: "number",
+    reference: number,
+    expects: "number",
+    async: false,
+    message: message2,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      if (typeof dataset.value === "number" && !isNaN(dataset.value)) {
+        dataset.typed = true;
+      } else {
+        _addIssue(this, "type", dataset, config2);
+      }
+      return dataset;
+    }
+  };
+}
+function object(entries2, message2) {
+  return {
+    kind: "schema",
+    type: "object",
+    reference: object,
+    expects: "Object",
+    async: false,
+    entries: entries2,
+    message: message2,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      const input = dataset.value;
+      if (input && typeof input === "object") {
+        dataset.typed = true;
+        dataset.value = {};
+        for (const key in this.entries) {
+          const valueSchema = this.entries[key];
+          if (key in input || (valueSchema.type === "exact_optional" || valueSchema.type === "optional" || valueSchema.type === "nullish") && valueSchema.default !== undefined) {
+            const value2 = key in input ? input[key] : getDefault(valueSchema);
+            const valueDataset = valueSchema["~run"]({ value: value2 }, config2);
+            if (valueDataset.issues) {
+              const pathItem = {
+                type: "object",
+                origin: "value",
+                input,
+                key,
+                value: value2
+              };
+              for (const issue of valueDataset.issues) {
+                if (issue.path) {
+                  issue.path.unshift(pathItem);
+                } else {
+                  issue.path = [pathItem];
+                }
+                dataset.issues?.push(issue);
+              }
+              if (!dataset.issues) {
+                dataset.issues = valueDataset.issues;
+              }
+              if (config2.abortEarly) {
+                dataset.typed = false;
+                break;
+              }
+            }
+            if (!valueDataset.typed) {
+              dataset.typed = false;
+            }
+            dataset.value[key] = valueDataset.value;
+          } else if (valueSchema.fallback !== undefined) {
+            dataset.value[key] = getFallback(valueSchema);
+          } else if (valueSchema.type !== "exact_optional" && valueSchema.type !== "optional" && valueSchema.type !== "nullish") {
+            _addIssue(this, "key", dataset, config2, {
+              input: undefined,
+              expected: `"${key}"`,
+              path: [
+                {
+                  type: "object",
+                  origin: "key",
+                  input,
+                  key,
+                  value: input[key]
+                }
+              ]
+            });
+            if (config2.abortEarly) {
+              break;
+            }
+          }
+        }
+      } else {
+        _addIssue(this, "type", dataset, config2);
+      }
+      return dataset;
+    }
+  };
+}
+function optional(wrapped, default_) {
+  return {
+    kind: "schema",
+    type: "optional",
+    reference: optional,
+    expects: `(${wrapped.expects} | undefined)`,
+    async: false,
+    wrapped,
+    default: default_,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      if (dataset.value === undefined) {
+        if (this.default !== undefined) {
+          dataset.value = getDefault(this, dataset, config2);
+        }
+        if (dataset.value === undefined) {
+          dataset.typed = true;
+          return dataset;
+        }
+      }
+      return this.wrapped["~run"](dataset, config2);
+    }
+  };
+}
+function record(key, value2, message2) {
+  return {
+    kind: "schema",
+    type: "record",
+    reference: record,
+    expects: "Object",
+    async: false,
+    key,
+    value: value2,
+    message: message2,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      const input = dataset.value;
+      if (input && typeof input === "object") {
+        dataset.typed = true;
+        dataset.value = {};
+        for (const entryKey in input) {
+          if (_isValidObjectKey(input, entryKey)) {
+            const entryValue = input[entryKey];
+            const keyDataset = this.key["~run"]({ value: entryKey }, config2);
+            if (keyDataset.issues) {
+              const pathItem = {
+                type: "object",
+                origin: "key",
+                input,
+                key: entryKey,
+                value: entryValue
+              };
+              for (const issue of keyDataset.issues) {
+                issue.path = [pathItem];
+                dataset.issues?.push(issue);
+              }
+              if (!dataset.issues) {
+                dataset.issues = keyDataset.issues;
+              }
+              if (config2.abortEarly) {
+                dataset.typed = false;
+                break;
+              }
+            }
+            const valueDataset = this.value["~run"]({ value: entryValue }, config2);
+            if (valueDataset.issues) {
+              const pathItem = {
+                type: "object",
+                origin: "value",
+                input,
+                key: entryKey,
+                value: entryValue
+              };
+              for (const issue of valueDataset.issues) {
+                if (issue.path) {
+                  issue.path.unshift(pathItem);
+                } else {
+                  issue.path = [pathItem];
+                }
+                dataset.issues?.push(issue);
+              }
+              if (!dataset.issues) {
+                dataset.issues = valueDataset.issues;
+              }
+              if (config2.abortEarly) {
+                dataset.typed = false;
+                break;
+              }
+            }
+            if (!keyDataset.typed || !valueDataset.typed) {
+              dataset.typed = false;
+            }
+            if (keyDataset.typed) {
+              dataset.value[keyDataset.value] = valueDataset.value;
+            }
+          }
+        }
+      } else {
+        _addIssue(this, "type", dataset, config2);
+      }
+      return dataset;
+    }
+  };
+}
+function string(message2) {
+  return {
+    kind: "schema",
+    type: "string",
+    reference: string,
+    expects: "string",
+    async: false,
+    message: message2,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      if (typeof dataset.value === "string") {
+        dataset.typed = true;
+      } else {
+        _addIssue(this, "type", dataset, config2);
+      }
+      return dataset;
+    }
+  };
+}
+function _subIssues(datasets) {
+  let issues;
+  if (datasets) {
+    for (const dataset of datasets) {
+      if (issues) {
+        issues.push(...dataset.issues);
+      } else {
+        issues = dataset.issues;
+      }
+    }
+  }
+  return issues;
+}
+function union(options, message2) {
+  return {
+    kind: "schema",
+    type: "union",
+    reference: union,
+    expects: _joinExpects(options.map((option) => option.expects), "|"),
+    async: false,
+    options,
+    message: message2,
+    get "~standard"() {
+      return _getStandardProps(this);
+    },
+    "~run"(dataset, config2) {
+      let validDataset;
+      let typedDatasets;
+      let untypedDatasets;
+      for (const schema of this.options) {
+        const optionDataset = schema["~run"]({ value: dataset.value }, config2);
+        if (optionDataset.typed) {
+          if (optionDataset.issues) {
+            if (typedDatasets) {
+              typedDatasets.push(optionDataset);
+            } else {
+              typedDatasets = [optionDataset];
+            }
+          } else {
+            validDataset = optionDataset;
+            break;
+          }
+        } else {
+          if (untypedDatasets) {
+            untypedDatasets.push(optionDataset);
+          } else {
+            untypedDatasets = [optionDataset];
+          }
+        }
+      }
+      if (validDataset) {
+        return validDataset;
+      }
+      if (typedDatasets) {
+        if (typedDatasets.length === 1) {
+          return typedDatasets[0];
+        }
+        _addIssue(this, "type", dataset, config2, {
+          issues: _subIssues(typedDatasets)
+        });
+        dataset.typed = true;
+      } else if (untypedDatasets?.length === 1) {
+        return untypedDatasets[0];
+      } else {
+        _addIssue(this, "type", dataset, config2, {
+          issues: _subIssues(untypedDatasets)
+        });
+      }
+      return dataset;
+    }
+  };
+}
+function parse2(schema, input, config2) {
+  const dataset = schema["~run"]({ value: input }, getGlobalConfig(config2));
+  if (dataset.issues) {
+    throw new ValiError(dataset.issues);
+  }
+  return dataset.value;
+}
+
+// src/lib/schemas.ts
+var NumberSchema = number();
+var StringSchema = string();
+var OptionalStringSchema = optional(string());
+var PathPointSchema = object({
+  x: NumberSchema,
+  y: NumberSchema
+});
+var ResistancesSchema = record(StringSchema, NumberSchema);
+var EnemySchema = object({
+  health: NumberSchema,
+  speed: NumberSchema,
+  value: NumberSchema,
+  resistances: ResistancesSchema
+});
+var EnemiesSchema = record(StringSchema, EnemySchema);
+var UpgradeEffectSchema = object({
+  damage: optional(NumberSchema),
+  range: optional(NumberSchema),
+  fire_rate: optional(NumberSchema)
+});
+var UpgradeSchema = object({
+  name: StringSchema,
+  display_name: StringSchema,
+  cost: NumberSchema,
+  effect: UpgradeEffectSchema
+});
+var TowerSchema = object({
+  name: StringSchema,
+  cost: NumberSchema,
+  damage: NumberSchema,
+  range: NumberSchema,
+  fire_rate: NumberSchema,
+  damage_type: StringSchema,
+  color: NumberSchema,
+  texture: OptionalStringSchema,
+  upgrades: array(UpgradeSchema),
+  hotkey: OptionalStringSchema
+});
+var TowersSchema = record(StringSchema, TowerSchema);
+var WaveEnemySchema = object({
+  type: StringSchema,
+  count: NumberSchema,
+  spawn_delay: NumberSchema
+});
+var WaveSchema = object({
+  number: NumberSchema,
+  enemies: array(WaveEnemySchema)
+});
+var WavesSchema = object({
+  waves: array(WaveSchema)
+});
+var MissionSoundsSchema = object({
+  tower_build: StringSchema,
+  enemy_spawn: StringSchema,
+  damage_taken: StringSchema
+});
+var MissionSchema = object({
+  name: StringSchema,
+  description: StringSchema,
+  map_texture: StringSchema,
+  background_music: StringSchema,
+  victory_sound: StringSchema,
+  defeat_sound: StringSchema,
+  starting_gold: NumberSchema,
+  starting_lives: NumberSchema,
+  wave_interval: NumberSchema,
+  difficulty: union([literal("easy"), literal("medium"), literal("hard")]),
+  total_waves: NumberSchema,
+  sounds: MissionSoundsSchema,
+  enemy_path: array(PathPointSchema),
+  initial_pause: NumberSchema
+});
+var FullMissionSchema = object({
+  mission: MissionSchema,
+  enemies: EnemiesSchema,
+  towers: TowersSchema,
+  waves: WavesSchema
+});
+var BundleSchema = object({
+  name: StringSchema,
+  missions: array(StringSchema)
+});
+var BundlesListSchema = object({
+  bundles: array(object({
+    id: StringSchema,
+    name: StringSchema
+  }))
+});
 
 // src/web.ts
 var VERSION3 = "0.0.1";
@@ -33176,9 +34452,34 @@ async function main() {
     should_never_happen("Root Element Not Found!");
     return;
   }
-  const current_save = save_get(VERSION3);
-  const mission_data = await (await fetch(`missions/${current_save.mission}.json`)).json();
-  const { enemies, towers, waves, mission } = mission_data;
+  let current_save = save_get(VERSION3);
+  if (!current_save.bundle) {
+    const bundles_data = await (await fetch(`bundles/bundles.json`)).json();
+    const validated_bundles = parse2(BundlesListSchema, bundles_data);
+    modal_show_bundle_select(validated_bundles.bundles, async (selected_id) => {
+      const bundle_url2 = `bundles/${selected_id}/bundle.json`;
+      const bundle_config2 = await (await fetch(bundle_url2)).json();
+      const first_mission = bundle_config2.missions[0];
+      if (!first_mission) {
+        should_never_happen("No missions in bundle");
+        return;
+      }
+      const new_save = { version: VERSION3, bundle: selected_id, mission: first_mission };
+      localStorage.setItem("jdefense", JSON.stringify(new_save));
+      location.reload();
+    });
+    return;
+  }
+  const bundle_url = `bundles/${current_save.bundle}/bundle.json`;
+  const bundle_config = await (await fetch(bundle_url)).json();
+  if (!bundle_config.missions.includes(current_save.mission)) {
+    current_save.mission = bundle_config.missions[0] || "";
+    localStorage.setItem("jdefense", JSON.stringify(current_save));
+  }
+  const mission_url = `bundles/${current_save.bundle}/${current_save.mission}`;
+  const mission_data = await (await fetch(mission_url)).json();
+  const validated_data = parse2(FullMissionSchema, mission_data);
+  const { enemies, towers, waves, mission } = validated_data;
   const hud = hud_create();
   for (const h2 of hud) {
     document.body.appendChild(h2);
@@ -33188,13 +34489,8 @@ async function main() {
   root_element.appendChild(canvas);
   const viewport = await app_viewport_create(app);
   app.stage.addChild(viewport);
-  game_init({
-    enemies,
-    towers,
-    waves,
-    mission
-  });
+  game_init({ enemies, towers, waves, mission });
 }
 main();
 
-//# debugId=B753AA481DAD54A564756E2164756E21
+//# debugId=675E5C88782AE1F264756E2164756E21
