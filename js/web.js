@@ -30225,7 +30225,8 @@ function save_init(version) {
   return {
     version,
     bundle: "",
-    mission: ""
+    mission: "",
+    completed_per_bundle: {}
   };
 }
 
@@ -31908,80 +31909,6 @@ function app_viewport_get() {
   return active_viewport;
 }
 
-// src/lib/hud.ts
-function hud_create() {
-  const hud = [];
-  hud.push(hud_create_header());
-  hud.push(hud_create_side_left());
-  hud.push(hud_create_side_right());
-  hud.push(hud_create_footer());
-  return hud;
-}
-function hud_create_header() {
-  const header = document.createElement("div");
-  header.classList.add("hud-header", "has-background-primary-05", "has-text-primary-05-invert");
-  header.style.display = "flex";
-  header.style.alignItems = "center";
-  header.style.justifyContent = "space-between";
-  header.style.padding = "0 10px";
-  const mission_name = document.createElement("div");
-  mission_name.id = "mission-name";
-  mission_name.classList.add("is-size-5", "mr-4", "has-text-info");
-  header.appendChild(mission_name);
-  const wave_info = document.createElement("div");
-  wave_info.id = "wave-info";
-  wave_info.classList.add("is-size-5");
-  header.appendChild(wave_info);
-  const lives = document.createElement("div");
-  lives.id = "lives";
-  lives.classList.add("is-size-5", "ml-auto", "has-text-danger");
-  header.appendChild(lives);
-  const gold = document.createElement("div");
-  gold.id = "gold";
-  gold.classList.add("is-size-5", "ml-4", "has-text-warning");
-  header.appendChild(gold);
-  const pause_div = document.createElement("div");
-  pause_div.id = "pause";
-  pause_div.classList.add("is-size-5", "ml-4", "is-clickable");
-  pause_div.innerHTML = '<i class="fas fa-pause"></i>';
-  header.appendChild(pause_div);
-  const reset_div = document.createElement("div");
-  reset_div.id = "reset";
-  reset_div.classList.add("is-size-5", "ml-4", "is-clickable");
-  reset_div.innerHTML = '<i class="fas fa-undo"></i>';
-  reset_div.title = "Reset saves and restart";
-  reset_div.onclick = () => {
-    localStorage.removeItem("jdefense");
-    location.reload();
-  };
-  header.appendChild(reset_div);
-  return header;
-}
-function hud_create_footer() {
-  const footer = document.createElement("div");
-  footer.id = "hud-footer";
-  footer.classList.add("hud-footer");
-  return footer;
-}
-function hud_create_side_left() {
-  const side_left = document.createElement("div");
-  side_left.classList.add("hud-side-left");
-  side_left.id = "hud-side-left";
-  return side_left;
-}
-function hud_create_side_right() {
-  const side_right = document.createElement("div");
-  side_right.classList.add("hud-side-right");
-  const log_div = document.createElement("div");
-  log_div.id = "message-log";
-  log_div.classList.add("content", "has-text-white", "p-2", "has-background-black-bis");
-  log_div.style.width = "200px";
-  log_div.style.maxHeight = "300px";
-  log_div.style.overflowY = "auto";
-  side_right.appendChild(log_div);
-  return side_right;
-}
-
 // node_modules/bitecs/dist/index.mjs
 var TYPES_ENUM = {
   i8: "i8",
@@ -32604,7 +32531,7 @@ function map_draw_path(path_config) {
   const path_graphics = new Graphics;
   path_graphics.setStrokeStyle({
     width: 30,
-    color: 6636321,
+    color: 11973285,
     alpha: 0.75
   });
   path_graphics.moveTo(starting_point.x, starting_point.y);
@@ -32721,7 +32648,7 @@ function path_distance_to_segment(p2, a2, b2) {
 }
 
 // src/lib/modal.ts
-var VERSION2 = "0.0.1";
+var VERSION2 = game_version();
 function modal_show_instructions(text, on_start) {
   const modal_el = document.createElement("div");
   modal_el.classList.add("modal", "is-active");
@@ -32805,45 +32732,13 @@ async function modal_show_victory() {
   const bundle_config = await (await fetch(bundle_url)).json();
   const missions = bundle_config.missions;
   const current_index = missions.indexOf(current_save.mission);
-  const has_next = current_index < missions.length - 1;
-  const modal_el = document.createElement("div");
-  modal_el.classList.add("modal", "is-active");
-  const bg_el = document.createElement("div");
-  bg_el.classList.add("modal-background");
-  modal_el.appendChild(bg_el);
-  const card_el = document.createElement("div");
-  card_el.classList.add("modal-card");
-  modal_el.appendChild(card_el);
-  const head_el = document.createElement("header");
-  head_el.classList.add("modal-card-head");
-  const title_el = document.createElement("p");
-  title_el.classList.add("modal-card-title");
-  title_el.textContent = "Victory!";
-  head_el.appendChild(title_el);
-  card_el.appendChild(head_el);
-  const body_el = document.createElement("section");
-  body_el.classList.add("modal-card-body");
-  const content_el = document.createElement("p");
-  content_el.textContent = "You have defended against all waves!";
-  body_el.appendChild(content_el);
-  card_el.appendChild(body_el);
-  const foot_el = document.createElement("footer");
-  foot_el.classList.add("modal-card-foot");
-  const btn_el = document.createElement("button");
-  btn_el.classList.add("button", "is-success");
-  btn_el.textContent = has_next ? "Next Mission" : "Restart Bundle from Mission 1";
-  btn_el.onclick = async () => {
-    let new_mission = missions[0];
-    if (has_next) {
-      new_mission = missions[current_index + 1];
-    }
-    const new_save = { ...current_save, mission: new_mission };
-    localStorage.setItem("jdefense", JSON.stringify(new_save));
-    location.reload();
-  };
-  foot_el.appendChild(btn_el);
-  card_el.appendChild(foot_el);
-  document.body.appendChild(modal_el);
+  if (current_index > current_save.completed_per_bundle[current_save.bundle]) {
+    current_save.completed_per_bundle[current_save.bundle] = current_index;
+  }
+  localStorage.setItem("jdefense", JSON.stringify(current_save));
+  current_save.mission = "";
+  localStorage.setItem("jdefense", JSON.stringify(current_save));
+  location.reload();
 }
 function modal_show_bundle_select(bundles, on_select) {
   const modal_el = document.createElement("div");
@@ -32875,6 +32770,73 @@ function modal_show_bundle_select(bundles, on_select) {
     body_el.appendChild(btn);
   });
   card_el.appendChild(body_el);
+  document.body.appendChild(modal_el);
+}
+async function modal_show_mission_list(bundle_id) {
+  const current_save = save_get(VERSION2);
+  const bundle_url = `bundles/${bundle_id}/bundle.json`;
+  const bundle_config = await (await fetch(bundle_url)).json();
+  const missions = bundle_config.missions;
+  const highest_completed = current_save.completed_per_bundle[bundle_id] ?? -1;
+  const modal_el = document.createElement("div");
+  modal_el.classList.add("modal", "is-active");
+  const bg_el = document.createElement("div");
+  bg_el.classList.add("modal-background");
+  modal_el.appendChild(bg_el);
+  const card_el = document.createElement("div");
+  card_el.classList.add("modal-card");
+  modal_el.appendChild(card_el);
+  const head_el = document.createElement("header");
+  head_el.classList.add("modal-card-head");
+  const title_el = document.createElement("p");
+  title_el.classList.add("modal-card-title");
+  title_el.textContent = `${bundle_config.name} Missions`;
+  head_el.appendChild(title_el);
+  card_el.appendChild(head_el);
+  const body_el = document.createElement("section");
+  body_el.classList.add("modal-card-body");
+  missions.forEach((mission_file, index) => {
+    const btn = document.createElement("button");
+    btn.classList.add("button", "mb-2");
+    btn.style.width = "100%";
+    btn.textContent = `Mission ${index + 1}`;
+    if (index <= highest_completed) {
+      btn.classList.add("is-light");
+      btn.textContent += " ✓";
+      btn.onclick = () => {
+        current_save.mission = mission_file;
+        localStorage.setItem("jdefense", JSON.stringify(current_save));
+        location.reload();
+      };
+    } else if (index === highest_completed + 1) {
+      btn.classList.add("is-primary");
+      btn.onclick = () => {
+        current_save.mission = mission_file;
+        localStorage.setItem("jdefense", JSON.stringify(current_save));
+        location.reload();
+      };
+    } else {
+      btn.classList.add("is-light");
+      btn.disabled = true;
+      btn.textContent += " \uD83D\uDD12 Not unlocked yet";
+    }
+    body_el.appendChild(btn);
+  });
+  card_el.appendChild(body_el);
+  const foot_el = document.createElement("footer");
+  foot_el.classList.add("modal-card-foot");
+  const back_btn = document.createElement("button");
+  back_btn.classList.add("button");
+  back_btn.textContent = "Back to Bundles";
+  back_btn.onclick = () => {
+    modal_el.remove();
+    current_save.bundle = "";
+    current_save.mission = "";
+    localStorage.setItem("jdefense", JSON.stringify(current_save));
+    location.reload();
+  };
+  foot_el.appendChild(back_btn);
+  card_el.appendChild(foot_el);
   document.body.appendChild(modal_el);
 }
 
@@ -33266,6 +33228,10 @@ function systems_cleanup(world) {
 }
 
 // src/lib/game.ts
+var VERSION3 = "0.0.2";
+function game_version() {
+  return VERSION3;
+}
 var { Position: Position5 } = components2;
 var tower_size2 = 20;
 var tooltip = null;
@@ -33868,6 +33834,89 @@ function game_tooltip_hide() {
   if (tooltip)
     tooltip.style.display = "none";
 }
+function game_show_mission_list() {
+  const current_save = save_get(game_version());
+  if (current_save.bundle) {
+    modal_show_mission_list(current_save.bundle);
+  } else {
+    fetch(`bundles/bundles.json`).then((res) => res.json()).then((validated_bundles) => {
+      modal_show_bundle_select(validated_bundles.bundles, (selected_id) => {
+        current_save.bundle = selected_id;
+        current_save.completed_per_bundle[selected_id] = -1;
+        localStorage.setItem("jdefense", JSON.stringify(current_save));
+        modal_show_mission_list(selected_id);
+      });
+    });
+  }
+}
+
+// src/lib/hud.ts
+function hud_create() {
+  const hud = [];
+  hud.push(hud_create_header());
+  hud.push(hud_create_side_left());
+  hud.push(hud_create_side_right());
+  hud.push(hud_create_footer());
+  return hud;
+}
+function hud_create_header() {
+  const header = document.createElement("div");
+  header.classList.add("hud-header", "has-background-primary-05", "has-text-primary-05-invert");
+  header.style.display = "flex";
+  header.style.alignItems = "center";
+  header.style.justifyContent = "space-between";
+  header.style.padding = "0 10px";
+  const mission_name = document.createElement("div");
+  mission_name.id = "mission-name";
+  mission_name.classList.add("is-size-5", "mr-4", "has-text-info");
+  header.appendChild(mission_name);
+  const wave_info = document.createElement("div");
+  wave_info.id = "wave-info";
+  wave_info.classList.add("is-size-5");
+  header.appendChild(wave_info);
+  const lives = document.createElement("div");
+  lives.id = "lives";
+  lives.classList.add("is-size-5", "ml-auto", "has-text-danger");
+  header.appendChild(lives);
+  const gold = document.createElement("div");
+  gold.id = "gold";
+  gold.classList.add("is-size-5", "ml-4", "has-text-warning");
+  header.appendChild(gold);
+  const book_div = document.createElement("div");
+  book_div.id = "bundles";
+  book_div.classList.add("is-size-5", "ml-4", "is-clickable");
+  book_div.innerHTML = '<i class="fas fa-book"></i>';
+  book_div.title = "Select Bundle / Mission";
+  book_div.onclick = () => {
+    game_show_mission_list();
+  };
+  header.appendChild(book_div);
+  return header;
+}
+function hud_create_footer() {
+  const footer = document.createElement("div");
+  footer.id = "hud-footer";
+  footer.classList.add("hud-footer");
+  return footer;
+}
+function hud_create_side_left() {
+  const side_left = document.createElement("div");
+  side_left.classList.add("hud-side-left");
+  side_left.id = "hud-side-left";
+  return side_left;
+}
+function hud_create_side_right() {
+  const side_right = document.createElement("div");
+  side_right.classList.add("hud-side-right");
+  const log_div = document.createElement("div");
+  log_div.id = "message-log";
+  log_div.classList.add("content", "has-text-white", "p-2", "has-background-black-bis");
+  log_div.style.width = "200px";
+  log_div.style.maxHeight = "300px";
+  log_div.style.overflowY = "auto";
+  side_right.appendChild(log_div);
+  return side_right;
+}
 
 // node_modules/valibot/dist/index.js
 var store;
@@ -34445,14 +34494,13 @@ var BundlesListSchema = object({
 });
 
 // src/web.ts
-var VERSION3 = "0.0.1";
 async function main() {
   const root_element = document.getElementById("app");
   if (!root_element) {
     should_never_happen("Root Element Not Found!");
     return;
   }
-  let current_save = save_get(VERSION3);
+  let current_save = save_get(game_version());
   if (!current_save.bundle) {
     const bundles_data = await (await fetch(`bundles/bundles.json`)).json();
     const validated_bundles = parse2(BundlesListSchema, bundles_data);
@@ -34464,10 +34512,16 @@ async function main() {
         should_never_happen("No missions in bundle");
         return;
       }
-      const new_save = { version: VERSION3, bundle: selected_id, mission: first_mission };
-      localStorage.setItem("jdefense", JSON.stringify(new_save));
+      current_save.bundle = selected_id;
+      current_save.completed_per_bundle[selected_id] = -1;
+      current_save.mission = first_mission;
+      localStorage.setItem("jdefense", JSON.stringify(current_save));
       location.reload();
     });
+    return;
+  }
+  if (!current_save.mission) {
+    modal_show_mission_list(current_save.bundle);
     return;
   }
   const bundle_url = `bundles/${current_save.bundle}/bundle.json`;
@@ -34475,6 +34529,8 @@ async function main() {
   if (!bundle_config.missions.includes(current_save.mission)) {
     current_save.mission = bundle_config.missions[0] || "";
     localStorage.setItem("jdefense", JSON.stringify(current_save));
+    modal_show_mission_list(current_save.bundle);
+    return;
   }
   const mission_url = `bundles/${current_save.bundle}/${current_save.mission}`;
   const mission_data = await (await fetch(mission_url)).json();
@@ -34493,4 +34549,4 @@ async function main() {
 }
 main();
 
-//# debugId=675E5C88782AE1F264756E2164756E21
+//# debugId=1806EDE179F820CB64756E2164756E21
