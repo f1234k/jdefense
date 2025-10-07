@@ -32280,7 +32280,7 @@ function modal_show_defeat() {
   root.appendChild(modal_el);
 }
 function modal_show_victory() {
-  const missions = ["m001", "m002"];
+  const missions = ["m001", "m002", "m003", "m004", "m005", "m006", "m007"];
   const current_save = save_get(VERSION2);
   const current_index = missions.indexOf(current_save.mission);
   const has_next = current_index < missions.length - 1;
@@ -32309,7 +32309,7 @@ function modal_show_victory() {
   foot_el.classList.add("modal-card-foot");
   const btn_el = document.createElement("button");
   btn_el.classList.add("button", "is-success");
-  btn_el.textContent = has_next ? "Next Mission" : "Restart";
+  btn_el.textContent = has_next ? "Next Mission" : "Restart from Mission 1";
   btn_el.onclick = () => {
     if (has_next) {
       const next_mission = missions[current_index + 1];
@@ -32319,6 +32319,11 @@ function modal_show_victory() {
       }
       const new_save = { ...current_save, mission: next_mission };
       localStorage.setItem("jdefense", JSON.stringify(new_save));
+    } else {
+      if (missions[0] !== undefined) {
+        const new_save = { ...current_save, mission: missions[0] };
+        localStorage.setItem("jdefense", JSON.stringify(new_save));
+      }
     }
     location.reload();
   };
@@ -33192,4 +33197,4 @@ async function main() {
 }
 main();
 
-//# debugId=B6BF1B49EF9BCB0464756E2164756E21
+//# debugId=B753AA481DAD54A564756E2164756E21
