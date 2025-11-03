@@ -1,0 +1,291 @@
+{
+  "version": "1.0",
+  "mission": {
+    "name": "Mission 4: Mountain Pass",
+    "description": "Navigate the treacherous mountain pass! NEW: Bomb enemies explode on death, damaging nearby enemies.\n- Bomber enemies: Deal AoE damage when killed\n- Position matters: Group kills create chain reactions\n- Use splash damage towers to trigger explosions\n- All tower types available - strategic placement key!",
+    "map_texture": "assets/maps/mountain_map.png",
+    "background_music": "assets/audio/mountain_theme.ogg",
+    "victory_sound": "assets/audio/victory_fanfare.ogg",
+    "defeat_sound": "assets/audio/defeat.ogg",
+    "starting_gold": 400,
+    "starting_lives": 18,
+    "wave_interval": 15.0,
+    "difficulty": "medium",
+    "total_waves": 7,
+    "initial_pause": 25.0,
+    "sounds": {
+      "tower_build": "assets/audio/build_tower.ogg",
+      "enemy_spawn": "assets/audio/spawn.ogg",
+      "damage_taken": "assets/audio/hit.ogg",
+      "enemy_death": "assets/audio/explosion_death.ogg",
+      "tower_shot": "assets/audio/shot.ogg"
+    },
+    "difficulty_modifiers": {
+      "health_mult": 1.0,
+      "speed_mult": 1.0,
+      "gold_mult": 1.0
+    },
+    "rewards": {
+      "base_gold": 250,
+      "lives_bonus": 18
+    },
+    "tutorial_hints": [
+      "NEW: Bomber enemies explode on death!",
+      "Chain explosions can clear groups",
+      "Use splash damage to trigger chain reactions"
+    ],
+    "enemy_path": [
+      { "x": 50, "y": 350 },
+      { "x": 150, "y": 350 },
+      { "x": 200, "y": 220 },
+      { "x": 320, "y": 220 },
+      { "x": 360, "y": 400 },
+      { "x": 500, "y": 400 },
+      { "x": 540, "y": 260 },
+      { "x": 680, "y": 260 },
+      { "x": 720, "y": 370 },
+      { "x": 900, "y": 370 }
+    ],
+    "path_type": "linear"
+  },
+  "enemies": {
+    "basic": {
+      "health": 160,
+      "speed": 56,
+      "value": 16,
+      "resistances": {
+        "physical": 1.0,
+        "fire": 1.0,
+        "ice": 1.0,
+        "poison": 1.0,
+        "holy": 1.0
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/basic_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "on_death": {}
+    },
+    "fast": {
+      "health": 100,
+      "speed": 90,
+      "value": 22,
+      "resistances": {
+        "physical": 1.0,
+        "fire": 0.9,
+        "ice": 1.4,
+        "poison": 0.95,
+        "holy": 1.0
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/fast_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "evasion_chance": 0.15,
+      "on_death": {}
+    },
+    "armored": {
+      "health": 500,
+      "speed": 44,
+      "value": 35,
+      "resistances": {
+        "physical": 0.5,
+        "fire": 1.1,
+        "ice": 1.0,
+        "poison": 0.7,
+        "holy": 1.0
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/armored_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "on_death": {}
+    },
+    "undead": {
+      "health": 300,
+      "speed": 50,
+      "value": 38,
+      "resistances": {
+        "physical": 0.6,
+        "fire": 0.7,
+        "ice": 0.9,
+        "poison": 0.8,
+        "holy": 1.8
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/undead_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "armor_regen": 2.5,
+      "on_death": {}
+    },
+    "flying": {
+      "health": 120,
+      "speed": 82,
+      "value": 26,
+      "resistances": {
+        "physical": 0.8,
+        "fire": 1.4,
+        "ice": 0.8,
+        "poison": 0.85,
+        "holy": 1.0
+      },
+      "animations": {
+        "fly": { "frame_prefix": "assets/enemies/flying_fly_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "path_modifier": "air",
+      "on_death": {}
+    },
+    "bomber": {
+      "health": 150,
+      "speed": 45,
+      "value": 40,
+      "resistances": {
+        "physical": 0.9,
+        "fire": 0.6,
+        "ice": 1.0,
+        "poison": 0.9,
+        "holy": 1.0
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/bomber_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "on_death": {
+        "explosion_damage": 80,
+        "radius": 70
+      }
+    }
+  },
+  "towers": {
+    "basic": {
+      "name": "Basic Tower",
+      "cost": 50,
+      "damage": 26,
+      "range": 100,
+      "fire_rate": 1.0,
+      "damage_type": "physical",
+      "color": 8421504,
+      "hotkey": "B",
+      "upgrades": [
+        { "name": "damage_boost", "display_name": "Damage +18", "cost": 55, "effect": { "damage": 18 } },
+        { "name": "splash", "display_name": "Splash (50 radius)", "cost": 100, "effect": { "splash_damage": 50 } }
+      ]
+    },
+    "fire": {
+      "name": "Fire Tower",
+      "cost": 80,
+      "damage": 24,
+      "range": 95,
+      "fire_rate": 0.8,
+      "damage_type": "fire",
+      "color": 16730688,
+      "hotkey": "F",
+      "upgrades": [
+        { "name": "damage_boost", "display_name": "Damage +24", "cost": 65, "effect": { "damage": 24 } },
+        { "name": "splash", "display_name": "Splash (60 radius)", "cost": 110, "effect": { "splash_damage": 60 } }
+      ]
+    },
+    "ice": {
+      "name": "Ice Tower",
+      "cost": 70,
+      "damage": 20,
+      "range": 105,
+      "fire_rate": 1.1,
+      "damage_type": "ice",
+      "color": 43647,
+      "hotkey": "I",
+      "upgrades": [
+        { "name": "damage_boost", "display_name": "Damage +20", "cost": 60, "effect": { "damage": 20 } },
+        { "name": "area_slow", "display_name": "Area Slow (25%, 50 radius)", "cost": 100, "effect": { "slowing_effect": 0.25, "radius": 50, "duration": 3.0 } }
+      ]
+    },
+    "poison": {
+      "name": "Poison Tower",
+      "cost": 90,
+      "damage": 16,
+      "range": 110,
+      "fire_rate": 0.9,
+      "damage_type": "poison",
+      "color": 65280,
+      "hotkey": "P",
+      "upgrades": [
+        { "name": "damage_boost", "display_name": "Damage +18", "cost": 70, "effect": { "damage": 18 } },
+        { "name": "poison_stack", "display_name": "Deadly Poison (10 DPS, 5s, stacks 5x)", "cost": 120, "effect": { "incinerate_effect": 10, "duration": 5.0, "stackable": true, "max_stacks": 5 } }
+      ]
+    },
+    "holy": {
+      "name": "Holy Tower",
+      "cost": 100,
+      "damage": 28,
+      "range": 100,
+      "fire_rate": 0.85,
+      "damage_type": "holy",
+      "color": 16776960,
+      "hotkey": "H",
+      "upgrades": [
+        { "name": "damage_boost", "display_name": "Divine Power +26", "cost": 80, "effect": { "damage": 26 } },
+        { "name": "splash", "display_name": "Divine Wrath (55 radius splash)", "cost": 115, "effect": { "splash_damage": 55 } }
+      ]
+    }
+  },
+  "waves": {
+    "waves": [
+      {
+        "number": 1,
+        "preview_description": "Standard enemies",
+        "enemies": [
+          { "type": "basic", "count": 8, "spawn_delay": 1.3 },
+          { "type": "fast", "count": 4, "spawn_delay": 1.1 }
+        ]
+      },
+      {
+        "number": 2,
+        "preview_description": "First bombers appear!",
+        "enemies": [
+          { "type": "basic", "count": 6, "spawn_delay": 1.2 },
+          { "type": "bomber", "count": 3, "spawn_delay": 2.5 }
+        ]
+      },
+      {
+        "number": 3,
+        "preview_description": "Bomber and armored mix",
+        "enemies": [
+          { "type": "bomber", "count": 5, "spawn_delay": 2.0 },
+          { "type": "armored", "count": 4, "spawn_delay": 2.2 }
+        ]
+      },
+      {
+        "number": 4,
+        "preview_description": "Fast enemies with bombers",
+        "enemies": [
+          { "type": "fast", "count": 8, "spawn_delay": 0.9 },
+          { "type": "bomber", "count": 4, "spawn_delay": 2.0 }
+        ]
+      },
+      {
+        "number": 5,
+        "preview_description": "Undead and bomber wave",
+        "enemies": [
+          { "type": "undead", "count": 6, "spawn_delay": 1.6 },
+          { "type": "bomber", "count": 5, "spawn_delay": 2.0 }
+        ]
+      },
+      {
+        "number": 6,
+        "preview_description": "Heavy bomber assault",
+        "enemies": [
+          { "type": "bomber", "count": 10, "spawn_delay": 1.8 },
+          { "type": "flying", "count": 5, "spawn_delay": 1.3 }
+        ]
+      },
+      {
+        "number": 7,
+        "preview_description": "Final chaos - everything!",
+        "enemies": [
+          { "type": "basic", "count": 6, "spawn_delay": 1.0 },
+          { "type": "fast", "count": 6, "spawn_delay": 0.9 },
+          { "type": "armored", "count": 4, "spawn_delay": 1.6 },
+          { "type": "undead", "count": 5, "spawn_delay": 1.5 },
+          { "type": "bomber", "count": 7, "spawn_delay": 2.0 },
+          { "type": "flying", "count": 6, "spawn_delay": 1.2 }
+        ]
+      }
+    ]
+  }
+}

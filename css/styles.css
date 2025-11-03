@@ -39,9 +39,14 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 canvas {
   display: block;
+  max-width: 100%;
+  height: auto;
 }
 /* HUD */
 .hud-header {

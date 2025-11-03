@@ -1,0 +1,623 @@
+{
+  "version": "1.0",
+  "mission": {
+    "name": "Mission 1: Forest Defense",
+    "description": "Defend the ancient forest from invading forces! Start with Basic Towers for cheap defense. Watch resistances:\n- Basic/Fast: Balanced, vulnerable to all.\n- Armored (gray): Resists Physical (Basic) by 50%—use Fire!\n- Fast (yellow): Weak to Ice (slows them).\n- Flying (cyan): Resists Fire less, but high speed—mix towers!\n- Boss: High health, needs variety. Preview waves for tips!",
+    "map_texture": "assets/maps/forest_map.png",
+    "background_music": "assets/audio/forest_theme.ogg",
+    "victory_sound": "assets/audio/victory_fanfare.ogg",
+    "defeat_sound": "assets/audio/defeat.ogg",
+    "starting_gold": 250,
+    "starting_lives": 10,
+    "wave_interval": 20.0,
+    "difficulty": "medium",
+    "total_waves": 5,
+    "initial_pause": 30.0,
+    "sounds": {
+      "tower_build": "assets/audio/build_tower.ogg",
+      "enemy_spawn": "assets/audio/spawn.ogg",
+      "damage_taken": "assets/audio/hit.ogg",
+      "enemy_death": "assets/audio/explosion_death.ogg",
+      "tower_shot": "assets/audio/shot.ogg"
+    },
+    "conditions": {
+      "victory": "all_waves_cleared",
+      "defeat": "lives <= 0"
+    },
+    "difficulty_modifiers": {
+      "health_mult": 1.0,
+      "speed_mult": 1.0,
+      "gold_mult": 1.0
+    },
+    "rewards": {
+      "base_gold": 100,
+      "lives_bonus": 10
+    },
+    "tutorial_hints": [
+      "Place towers along the path to stop enemies!",
+      "Use Fire towers against Armored enemies.",
+      "Ice towers can slow down Fast enemies.",
+      "Mix tower types for Flying and Boss enemies."
+    ],
+    "enemy_path": [
+      { "x": 50, "y": 300 },
+      { "x": 150, "y": 300 },
+      { "x": 200, "y": 200 },
+      { "x": 300, "y": 200 },
+      { "x": 350, "y": 400 },
+      { "x": 500, "y": 400 },
+      { "x": 550, "y": 250 },
+      { "x": 700, "y": 250 },
+      { "x": 750, "y": 350 },
+      { "x": 900, "y": 350 }
+    ],
+    "tower_spots": [
+      { "x": 250, "y": 380, "id": "spot1" },
+      { "x": 380, "y": 280, "id": "spot2" },
+      { "x": 520, "y": 520, "id": "spot3" },
+      { "x": 660, "y": 420, "id": "spot4" },
+      { "x": 800, "y": 180, "id": "spot5" },
+      { "x": 940, "y": 460, "id": "spot6" },
+      { "x": 1080, "y": 340, "id": "spot7" },
+      { "x": 1220, "y": 530, "id": "spot8" }
+    ],
+    "path_type": "linear",
+    "spawn_point": { "x": 50, "y": 300 },
+    "goal_point": { "x": 900, "y": 350 }
+  },
+  "enemies": {
+    "basic": {
+      "health": 100,
+      "speed": 50,
+      "value": 10,
+      "resistances": {
+        "physical": 1.0,
+        "fire": 1.0,
+        "ice": 1.0
+      },
+      "animations": {
+        "walk": {
+          "frame_prefix": "assets/enemies/basic_walk_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "run": {
+          "frame_prefix": "assets/enemies/basic_run_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "death": {
+          "frame_prefix": "assets/enemies/basic_die_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": false
+        },
+        "idle": {
+          "frame_prefix": "assets/enemies/basic_idle_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        }
+      },
+      "on_death": {}
+    },
+    "fast": {
+      "health": 70,
+      "speed": 80,
+      "value": 15,
+      "resistances": {
+        "physical": 1.0,
+        "fire": 0.9,
+        "ice": 1.4
+      },
+      "animations": {
+        "walk": {
+          "frame_prefix": "assets/enemies/fast_walk_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "run": {
+          "frame_prefix": "assets/enemies/fast_run_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "death": {
+          "frame_prefix": "assets/enemies/fast_die_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": false
+        },
+        "idle": {
+          "frame_prefix": "assets/enemies/fast_idle_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        }
+      },
+      "evasion_chance": 0.1,
+      "on_death": {}
+    },
+    "armored": {
+      "health": 350,
+      "speed": 38,
+      "value": 25,
+      "resistances": {
+        "physical": 0.5,
+        "fire": 1.1,
+        "ice": 1.0
+      },
+      "animations": {
+        "walk": {
+          "frame_prefix": "assets/enemies/armored_walk_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "run": {
+          "frame_prefix": "assets/enemies/armored_run_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "death": {
+          "frame_prefix": "assets/enemies/armored_die_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": false
+        },
+        "idle": {
+          "frame_prefix": "assets/enemies/armored_idle_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        }
+      },
+      "armor_regen": 0,
+      "on_death": {}
+    },
+    "flying": {
+      "health": 90,
+      "speed": 75,
+      "value": 20,
+      "resistances": {
+        "physical": 0.8,
+        "fire": 1.4,
+        "ice": 0.8
+      },
+      "animations": {
+        "fly": {
+          "frame_prefix": "assets/enemies/flying_fly_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "death": {
+          "frame_prefix": "assets/enemies/flying_die_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": false
+        },
+        "idle": {
+          "frame_prefix": "assets/enemies/flying_idle_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        }
+      },
+      "path_modifier": "air",
+      "on_death": {}
+    },
+    "boss": {
+      "health": 850,
+      "speed": 30,
+      "value": 50,
+      "resistances": {
+        "physical": 0.65,
+        "fire": 0.85,
+        "ice": 0.85
+      },
+      "animations": {
+        "walk": {
+          "frame_prefix": "assets/enemies/boss_walk_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "run": {
+          "frame_prefix": "assets/enemies/boss_run_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "death": {
+          "frame_prefix": "assets/enemies/boss_die_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": false
+        },
+        "idle": {
+          "frame_prefix": "assets/enemies/boss_idle_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        }
+      },
+      "abilities": [],
+      "on_death": {
+        "explosion_damage": 0,
+        "radius": 0
+      }
+    }
+  },
+  "towers": {
+    "basic": {
+      "name": "Basic Tower",
+      "cost": 50,
+      "damage": 20,
+      "range": 100,
+      "fire_rate": 1.0,
+      "damage_type": "physical",
+      "color": 8421504,
+      "color_hex": "#808080",
+      "hotkey": "B",
+      "icon": "assets/towers/icons/basic_tower.png",
+      "sprite": "assets/towers/sprites/basic_tower_sprite.png",
+      "projectile_speed": 200,
+      "targeting_mode": "first",
+      "build_time": 0,
+      "sell_value": 37.5,
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "icon": "assets/towers/icons/upgrades/damage_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/damage_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 0, "y": 0 }
+          },
+          "display_name": "Damage +15",
+          "cost": 55,
+          "effect": { "damage": 15 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "range_boost",
+          "icon": "assets/towers/icons/upgrades/range_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/range_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 10, "y": 0 }
+          },
+          "display_name": "Range +35",
+          "cost": 35,
+          "effect": { "range": 35 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "fire_rate_boost",
+          "icon": "assets/towers/icons/upgrades/fire_rate_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/fire_rate_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 20, "y": 0 }
+          },
+          "display_name": "Fire Rate +0.5",
+          "cost": 60,
+          "effect": { "fire_rate": 0.5 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "multi_shot",
+          "icon": "assets/towers/icons/upgrades/multi_shot.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/multi_shot.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 30, "y": 0 }
+          },
+          "display_name": "Multi-Shot (+1 projectile)",
+          "cost": 80,
+          "effect": { "multi_shot": 1 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "splash_damage",
+          "icon": "assets/towers/icons/upgrades/splash_damage.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/splash_damage.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 40, "y": 0 }
+          },
+          "display_name": "Splash Damage (50 radius)",
+          "cost": 100,
+          "effect": { "splash_damage": 50 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "critical_strike",
+          "icon": "assets/towers/icons/upgrades/critical_strike.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/critical_strike.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 50, "y": 0 }
+          },
+          "display_name": "Critical Strike Chance +50%",
+          "cost": 120,
+          "effect": { "critical_strike": 0.5 },
+          "max_level": 1,
+          "prerequisites": ["damage_boost"]
+        },
+        {
+          "name": "piercing_bullets",
+          "icon": "assets/towers/icons/upgrades/piercing_bullets.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/piercing_bullets.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 60, "y": 0 }
+          },
+          "display_name": "Piercing Bullets (-50% enemy armor for 2 seconds)",
+          "cost": 150,
+          "effect": { "piercing_bullets": 0.5, "duration": 2.0, "stackable": false },
+          "max_level": 1,
+          "prerequisites": []
+        }
+      ]
+    },
+    "fire": {
+      "name": "Fire Tower",
+      "cost": 80,
+      "damage": 18,
+      "range": 95,
+      "fire_rate": 0.8,
+      "damage_type": "fire",
+      "color": 16730688,
+      "color_hex": "#FF6000",
+      "hotkey": "F",
+      "icon": "assets/towers/icons/fire_tower.png",
+      "sprite": "assets/towers/sprites/fire_tower_sprite.png",
+      "projectile_speed": 180,
+      "targeting_mode": "first",
+      "build_time": 0,
+      "sell_value": 60.0,
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "icon": "assets/towers/icons/upgrades/damage_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/damage_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 0, "y": 0 }
+          },
+          "display_name": "Damage +20",
+          "cost": 65,
+          "effect": { "damage": 20 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "range_boost",
+          "icon": "assets/towers/icons/upgrades/range_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/range_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 10, "y": 0 }
+          },
+          "display_name": "Range +35",
+          "cost": 45,
+          "effect": { "range": 25 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "fire_rate_boost",
+          "icon": "assets/towers/icons/upgrades/fire_rate_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/fire_rate_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 20, "y": 0 }
+          },
+          "display_name": "Fire Rate +0.5",
+          "cost": 65,
+          "effect": { "fire_rate": 0.5 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "incinerate",
+          "icon": "assets/towers/icons/upgrades/incinerate.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/incinerate.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 30, "y": 0 }
+          },
+          "display_name": "Incinerate (5 DPS for 3 seconds)",
+          "cost": 90,
+          "effect": { "incinerate_effect": 5, "duration": 3.0, "stackable": true, "max_stacks": 3 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "splash_damage",
+          "icon": "assets/towers/icons/upgrades/splash_damage.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/splash_damage.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 40, "y": 0 }
+          },
+          "display_name": "Splash Damage (60 radius)",
+          "cost": 110,
+          "effect": { "splash_damage": 60 },
+          "max_level": 1,
+          "prerequisites": []
+        }
+      ]
+    },
+    "ice": {
+      "name": "Ice Tower",
+      "cost": 70,
+      "damage": 15,
+      "range": 105,
+      "fire_rate": 1.1,
+      "damage_type": "ice",
+      "color": 43647,
+      "color_hex": "#00AAFF",
+      "hotkey": "I",
+      "icon": "assets/towers/icons/ice_tower.png",
+      "sprite": "assets/towers/sprites/ice_tower_sprite.png",
+      "projectile_speed": 220,
+      "targeting_mode": "first",
+      "build_time": 0,
+      "sell_value": 52.5,
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "icon": "assets/towers/icons/upgrades/damage_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/damage_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 0, "y": 0 }
+          },
+          "display_name": "Damage +18",
+          "cost": 60,
+          "effect": { "damage": 18 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "range_boost",
+          "icon": "assets/towers/icons/upgrades/range_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/range_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 10, "y": 0 }
+          },
+          "display_name": "Range +35",
+          "cost": 40,
+          "effect": { "range": 35 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "fire_rate_boost",
+          "icon": "assets/towers/icons/upgrades/fire_rate_boost.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/fire_rate_boost.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 20, "y": 0 }
+          },
+          "display_name": "Fire Rate +0.6",
+          "cost": 65,
+          "effect": { "fire_rate": 0.6 },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "slowing_effect",
+          "icon": "assets/towers/icons/upgrades/slowing_effect.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/slowing_effect.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 30, "y": 0 }
+          },
+          "display_name": "Slowing Effect (single target, 50% slow for 3 seconds)",
+          "cost": 85,
+          "effect": { "slowing_effect": 0.5, "duration": 3.0, "stackable": false },
+          "max_level": 1,
+          "prerequisites": []
+        },
+        {
+          "name": "area_slow",
+          "icon": "assets/towers/icons/upgrades/area_slow.png",
+          "sprite": {
+            "texture": "assets/towers/sprites/upgrades/area_slow.png",
+            "scale": 0.5,
+            "rotation": 0,
+            "coords": { "x": 40, "y": 0 }
+          },
+          "display_name": "Area Slow (20% slow for 3 seconds, 50 radius)",
+          "cost": 100,
+          "effect": { "slowing_effect": 0.2, "radius": 50, "duration": 3.0, "stackable": false },
+          "max_level": 1,
+          "prerequisites": []
+        }
+      ]
+    }
+  },
+  "waves": {
+    "waves": [
+      {
+        "number": 1,
+        "preview_description": "A few basic enemies to get you started. Use Basic towers to defend.",
+        "enemies": [
+          { "type": "basic", "count": 9, "spawn_delay": 1.5 }
+        ],
+        "random_order": false
+      },
+      {
+        "number": 2,
+        "preview_description": "Mix of basic and fast enemies. Ice towers can help slow the fast ones.",
+        "enemies": [
+          { "type": "basic", "count": 6, "spawn_delay": 1.5 },
+          { "type": "fast", "count": 5, "spawn_delay": 1.2 }
+        ],
+        "random_order": false
+      },
+      {
+        "number": 3,
+        "preview_description": "Armored enemies appear—resistant to physical damage. Try Fire towers!",
+        "enemies": [
+          { "type": "basic", "count": 5, "spawn_delay": 1.5 },
+          { "type": "armored", "count": 2, "spawn_delay": 2.0 }
+        ],
+        "random_order": false
+      },
+      {
+        "number": 4,
+        "preview_description": "Fast and flying enemies with some armored. Mix your defenses.",
+        "enemies": [
+          { "type": "fast", "count": 6, "spawn_delay": 0.9 },
+          { "type": "flying", "count": 4, "spawn_delay": 1.5 },
+          { "type": "armored", "count": 2, "spawn_delay": 2.0 }
+        ],
+        "random_order": false
+      },
+      {
+        "number": 5,
+        "preview_description": "The boss arrives! Use a variety of towers to take it down.",
+        "announcement_sound": "assets/audio/boss_warning.ogg",
+        "enemies": [
+          { "type": "basic", "count": 5, "spawn_delay": 1.0 },
+          { "type": "fast", "count": 4, "spawn_delay": 1.0 },
+          { "type": "armored", "count": 3, "spawn_delay": 1.5 },
+          { "type": "flying", "count": 3, "spawn_delay": 1.2 },
+          { "type": "boss", "count": 1, "spawn_delay": 3.0 }
+        ],
+        "random_order": false
+      }
+    ]
+  }
+}

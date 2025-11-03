@@ -1,258 +1,174 @@
 {
+  "version": "1.0",
   "mission": {
-    "name": "Mission 2",
-    "description": "Defend against mystical enemies in a desert wasteland with new poison and holy threats.",
-    "map_texture": "assets/maps/desert_map.png",
-    "background_music": "assets/audio/desert_theme.ogg",
-    "victory_sound": "assets/audio/victory_fanfare.wav",
-    "defeat_sound": "assets/audio/game_over.wav",
-    "starting_gold": 400,
-    "starting_lives": 15,
-    "wave_interval": 20.0,
-    "difficulty": "hard",
-    "total_waves": 7,
-    "initial_pause": 20.0,
+    "name": "Mission 2: Poison Swamp",
+    "description": "Face enemies in the poisonous swamps! NEW: Poison Towers deal damage over time.\n- Poison damage: Stacks and lingers on enemies\n- Some enemies resist poison - use variety!\n- Basic/Fast: Normal poison vulnerability\n- Armored: Resists poison (use Fire)\n- Swamp enemies: Extra poison resistance",
+    "map_texture": "assets/maps/swamp_map.png",
+    "background_music": "assets/audio/swamp_theme.ogg",
+    "victory_sound": "assets/audio/victory_fanfare.ogg",
+    "defeat_sound": "assets/audio/defeat.ogg",
+    "starting_gold": 300,
+    "starting_lives": 20,
+    "wave_interval": 18.0,
+    "difficulty": "medium",
+    "total_waves": 6,
+    "initial_pause": 25.0,
     "sounds": {
-      "tower_build": "assets/audio/build_tower.wav",
-      "enemy_spawn": "assets/audio/enemy_appear.wav",
-      "damage_taken": "assets/audio/hit.wav"
+      "tower_build": "assets/audio/build_tower.ogg",
+      "enemy_spawn": "assets/audio/spawn.ogg",
+      "damage_taken": "assets/audio/hit.ogg",
+      "enemy_death": "assets/audio/explosion_death.ogg",
+      "tower_shot": "assets/audio/shot.ogg"
     },
+    "difficulty_modifiers": {
+      "health_mult": 1.0,
+      "speed_mult": 1.0,
+      "gold_mult": 1.0
+    },
+    "rewards": {
+      "base_gold": 150,
+      "lives_bonus": 12
+    },
+    "tutorial_hints": [
+      "NEW: Poison towers deal damage over time!",
+      "Poison stacks on enemies for more damage",
+      "Mix poison with other tower types"
+    ],
     "enemy_path": [
-      { "x": 100, "y": 400 },
-      { "x": 200, "y": 400 },
-      { "x": 250, "y": 300 },
-      { "x": 350, "y": 300 },
-      { "x": 400, "y": 500 },
-      { "x": 550, "y": 500 },
-      { "x": 600, "y": 350 },
-      { "x": 750, "y": 350 },
-      { "x": 800, "y": 450 },
-      { "x": 950, "y": 450 }
-    ]
+      { "x": 50, "y": 250 },
+      { "x": 180, "y": 250 },
+      { "x": 220, "y": 350 },
+      { "x": 350, "y": 350 },
+      { "x": 380, "y": 200 },
+      { "x": 520, "y": 200 },
+      { "x": 560, "y": 380 },
+      { "x": 700, "y": 380 },
+      { "x": 740, "y": 280 },
+      { "x": 900, "y": 280 }
+    ],
+    "path_type": "linear"
   },
   "enemies": {
     "basic": {
       "health": 120,
-      "speed": 55,
+      "speed": 52,
       "value": 12,
       "resistances": {
         "physical": 1.0,
         "fire": 1.0,
         "ice": 1.0,
-        "poison": 0.8,
-        "holy": 1.2
-      }
+        "poison": 1.0
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/basic_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "on_death": {}
     },
     "fast": {
-      "health": 70,
-      "speed": 90,
+      "health": 80,
+      "speed": 85,
       "value": 18,
       "resistances": {
         "physical": 1.0,
-        "fire": 0.7,
+        "fire": 0.9,
         "ice": 1.4,
-        "poison": 1.2,
-        "holy": 0.9
-      }
+        "poison": 0.95
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/fast_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "evasion_chance": 0.12,
+      "on_death": {}
     },
     "armored": {
-      "health": 250,
-      "speed": 35,
-      "value": 30,
+      "health": 400,
+      "speed": 40,
+      "value": 28,
       "resistances": {
-        "physical": 0.4,
+        "physical": 0.5,
         "fire": 1.1,
-        "ice": 0.9,
-        "poison": 1.3,
-        "holy": 0.6
-      }
+        "ice": 1.0,
+        "poison": 0.7
+      },
+      "animations": {
+        "walk": { "frame_prefix": "assets/enemies/armored_walk_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "armor_regen": 0,
+      "on_death": {}
     },
     "flying": {
       "health": 100,
-      "speed": 80,
-      "value": 25,
+      "speed": 78,
+      "value": 22,
       "resistances": {
-        "physical": 0.7,
+        "physical": 0.8,
         "fire": 1.4,
-        "ice": 0.6,
-        "poison": 0.5,
-        "holy": 1.5
-      }
-    },
-    "boss": {
-      "health": 600,
-      "speed": 30,
-      "value": 60,
-      "resistances": {
-        "physical": 0.6,
-        "fire": 0.7,
         "ice": 0.8,
-        "poison": 0.9,
-        "holy": 0.5
-      }
-    },
-    "undead": {
-      "health": 120,
-      "speed": 40,
-      "value": 20,
-      "resistances": {
-        "physical": 1.0,
-        "fire": 1.2,
-        "ice": 0.8,
-        "poison": 1.5,
-        "holy": 0.5
-      }
+        "poison": 0.85
+      },
+      "animations": {
+        "fly": { "frame_prefix": "assets/enemies/flying_fly_", "frame_count": 20, "frame_rate": 30, "loop": true }
+      },
+      "path_modifier": "air",
+      "on_death": {}
     }
   },
   "towers": {
     "basic": {
       "name": "Basic Tower",
       "cost": 50,
-      "damage": 20,
+      "damage": 22,
       "range": 100,
       "fire_rate": 1.0,
       "damage_type": "physical",
       "color": 8421504,
       "hotkey": "B",
       "upgrades": [
-        {
-          "name": "damage_boost",
-          "display_name": "Damage Boost",
-          "cost": 50,
-          "effect": { "damage": 15 }
-        },
-        {
-          "name": "range_boost",
-          "display_name": "Range Boost",
-          "cost": 40,
-          "effect": { "range": 25 }
-        },
-        {
-          "name": "fire_rate_boost",
-          "display_name": "Fire Rate Boost",
-          "cost": 60,
-          "effect": { "fire_rate": 0.5 }
-        }
+        { "name": "damage_boost", "display_name": "Damage +15", "cost": 55, "effect": { "damage": 15 } },
+        { "name": "range_boost", "display_name": "Range +35", "cost": 35, "effect": { "range": 35 } },
+        { "name": "fire_rate_boost", "display_name": "Fire Rate +0.5", "cost": 60, "effect": { "fire_rate": 0.5 } }
       ]
     },
     "fire": {
       "name": "Fire Tower",
-      "cost": 75,
-      "damage": 15,
-      "range": 90,
+      "cost": 80,
+      "damage": 20,
+      "range": 95,
       "fire_rate": 0.8,
       "damage_type": "fire",
       "color": 16730688,
       "hotkey": "F",
       "upgrades": [
-        {
-          "name": "damage_boost",
-          "display_name": "Damage Boost",
-          "cost": 60,
-          "effect": { "damage": 20 }
-        },
-        {
-          "name": "range_boost",
-          "display_name": "Range Boost",
-          "cost": 50,
-          "effect": { "range": 25 }
-        },
-        {
-          "name": "fire_rate_boost",
-          "display_name": "Fire Rate Boost",
-          "cost": 70,
-          "effect": { "fire_rate": 0.4 }
-        }
+        { "name": "damage_boost", "display_name": "Damage +20", "cost": 65, "effect": { "damage": 20 } },
+        { "name": "incinerate", "display_name": "Incinerate (5 DPS for 3s)", "cost": 90, "effect": { "incinerate_effect": 5, "duration": 3.0, "stackable": true, "max_stacks": 3 } }
       ]
     },
     "ice": {
       "name": "Ice Tower",
-      "cost": 80,
-      "damage": 12,
-      "range": 95,
-      "fire_rate": 1.2,
+      "cost": 70,
+      "damage": 16,
+      "range": 105,
+      "fire_rate": 1.1,
       "damage_type": "ice",
       "color": 43647,
       "hotkey": "I",
       "upgrades": [
-        {
-          "name": "damage_boost",
-          "display_name": "Damage Boost",
-          "cost": 55,
-          "effect": { "damage": 18 }
-        },
-        {
-          "name": "range_boost",
-          "display_name": "Range Boost",
-          "cost": 45,
-          "effect": { "range": 28 }
-        },
-        {
-          "name": "fire_rate_boost",
-          "display_name": "Fire Rate Boost",
-          "cost": 65,
-          "effect": { "fire_rate": 0.6 }
-        }
+        { "name": "damage_boost", "display_name": "Damage +18", "cost": 60, "effect": { "damage": 18 } },
+        { "name": "slowing_effect", "display_name": "Slow (50% for 3s)", "cost": 85, "effect": { "slowing_effect": 0.5, "duration": 3.0 } }
       ]
     },
     "poison": {
       "name": "Poison Tower",
       "cost": 90,
-      "damage": 10,
-      "range": 80,
-      "fire_rate": 1.5,
+      "damage": 12,
+      "range": 110,
+      "fire_rate": 0.9,
       "damage_type": "poison",
       "color": 65280,
       "hotkey": "P",
       "upgrades": [
-        {
-          "name": "damage_boost",
-          "display_name": "Damage Boost",
-          "cost": 65,
-          "effect": { "damage": 15 }
-        },
-        {
-          "name": "range_boost",
-          "display_name": "Range Boost",
-          "cost": 55,
-          "effect": { "range": 20 }
-        },
-        {
-          "name": "fire_rate_boost",
-          "display_name": "Fire Rate Boost",
-          "cost": 75,
-          "effect": { "fire_rate": 0.5 }
-        }
-      ]
-    },
-    "holy": {
-      "name": "Holy Tower",
-      "cost": 100,
-      "damage": 25,
-      "range": 110,
-      "fire_rate": 0.9,
-      "damage_type": "holy",
-      "color": 16776960,
-      "hotkey": "H",
-      "upgrades": [
-        {
-          "name": "damage_boost",
-          "display_name": "Damage Boost",
-          "cost": 70,
-          "effect": { "damage": 20 }
-        },
-        {
-          "name": "range_boost",
-          "display_name": "Range Boost",
-          "cost": 60,
-          "effect": { "range": 30 }
-        },
-        {
-          "name": "fire_rate_boost",
-          "display_name": "Fire Rate Boost",
-          "cost": 80,
-          "effect": { "fire_rate": 0.3 }
-        }
+        { "name": "damage_boost", "display_name": "Damage +15", "cost": 70, "effect": { "damage": 15 } },
+        { "name": "poison_stack", "display_name": "Deadly Poison (8 DPS, 5s, stacks 5x)", "cost": 120, "effect": { "incinerate_effect": 8, "duration": 5.0, "stackable": true, "max_stacks": 5 } }
       ]
     }
   },
@@ -260,60 +176,51 @@
     "waves": [
       {
         "number": 1,
+        "preview_description": "Basic enemy warmup",
         "enemies": [
-          { "type": "basic", "count": 6, "spawn_delay": 1.4 }
+          { "type": "basic", "count": 8, "spawn_delay": 1.5 }
         ]
       },
       {
         "number": 2,
+        "preview_description": "Fast enemies appear",
         "enemies": [
-          { "type": "basic", "count": 4, "spawn_delay": 1.4 },
-          { "type": "fast", "count": 5, "spawn_delay": 1.1 }
+          { "type": "basic", "count": 5, "spawn_delay": 1.5 },
+          { "type": "fast", "count": 4, "spawn_delay": 1.2 }
         ]
       },
       {
         "number": 3,
+        "preview_description": "Armored units - use Fire or Poison!",
         "enemies": [
-          { "type": "basic", "count": 6, "spawn_delay": 1.4 },
-          { "type": "fast", "count": 4, "spawn_delay": 1.1 },
-          { "type": "armored", "count": 3, "spawn_delay": 1.8 }
+          { "type": "basic", "count": 6, "spawn_delay": 1.3 },
+          { "type": "armored", "count": 5, "spawn_delay": 2.0 }
         ]
       },
       {
         "number": 4,
+        "preview_description": "Flying units join the assault",
         "enemies": [
           { "type": "fast", "count": 7, "spawn_delay": 0.9 },
-          { "type": "armored", "count": 4, "spawn_delay": 1.8 },
-          { "type": "flying", "count": 3, "spawn_delay": 1.3 }
+          { "type": "flying", "count": 5, "spawn_delay": 1.4 }
         ]
       },
       {
         "number": 5,
+        "preview_description": "Heavy armored wave",
         "enemies": [
-          { "type": "basic", "count": 5, "spawn_delay": 0.9 },
-          { "type": "fast", "count": 5, "spawn_delay": 0.9 },
-          { "type": "armored", "count": 4, "spawn_delay": 1.3 },
-          { "type": "flying", "count": 4, "spawn_delay": 1.1 },
-          { "type": "undead", "count": 2, "spawn_delay": 2.0 }
+          { "type": "armored", "count": 8, "spawn_delay": 1.8 },
+          { "type": "flying", "count": 4, "spawn_delay": 1.3 }
         ]
       },
       {
         "number": 6,
+        "preview_description": "Final wave - all types!",
         "enemies": [
-          { "type": "undead", "count": 5, "spawn_delay": 1.5 },
-          { "type": "flying", "count": 5, "spawn_delay": 1.0 },
-          { "type": "armored", "count": 3, "spawn_delay": 1.5 }
-        ]
-      },
-      {
-        "number": 7,
-        "enemies": [
-          { "type": "basic", "count": 5, "spawn_delay": 0.8 },
-          { "type": "fast", "count": 6, "spawn_delay": 0.8 },
-          { "type": "armored", "count": 5, "spawn_delay": 1.2 },
-          { "type": "flying", "count": 5, "spawn_delay": 1.0 },
-          { "type": "undead", "count": 4, "spawn_delay": 1.5 },
-          { "type": "boss", "count": 1, "spawn_delay": 3.0 }
+          { "type": "basic", "count": 6, "spawn_delay": 1.0 },
+          { "type": "fast", "count": 5, "spawn_delay": 1.0 },
+          { "type": "armored", "count": 4, "spawn_delay": 1.5 },
+          { "type": "flying", "count": 5, "spawn_delay": 1.2 }
         ]
       }
     ]

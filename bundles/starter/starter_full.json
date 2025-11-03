@@ -1,0 +1,278 @@
+{
+  "version": "1.0",
+  "mission": {
+    "name": "Full Demo: All Tower Abilities",
+    "description": "This mission demonstrates ALL tower abilities and visual effects!\n\nTower Types: Basic (Physical), Fire (Strong vs Armored), Ice (Slows)\n\nUpgrade Effects: Component Swap, Overlays, Projectile Changes",
+    "map_texture": "assets/maps/forest_map.png",
+    "background_music": "assets/audio/forest_theme.ogg",
+    "victory_sound": "assets/audio/victory_fanfare.ogg",
+    "defeat_sound": "assets/audio/defeat.ogg",
+    "starting_gold": 1000,
+    "starting_lives": 20,
+    "wave_interval": 25.0,
+    "difficulty": "easy",
+    "total_waves": 3,
+    "initial_pause": 45.0,
+    "sounds": {
+      "tower_build": "assets/audio/build_tower.ogg",
+      "enemy_spawn": "assets/audio/spawn.ogg",
+      "damage_taken": "assets/audio/hit.ogg",
+      "enemy_death": "assets/audio/explosion_death.ogg",
+      "tower_shot": "assets/audio/shot.ogg"
+    },
+    "conditions": {
+      "victory": "all_waves_cleared",
+      "defeat": "lives <= 0"
+    },
+    "difficulty_modifiers": {
+      "health_mult": 0.8,
+      "speed_mult": 0.9,
+      "gold_mult": 1.5
+    },
+    "rewards": {
+      "base_gold": 200,
+      "lives_bonus": 15
+    },
+    "tutorial_hints": [
+      "Plenty of gold to test all upgrades!",
+      "Try component swaps and overlays"
+    ],
+    "enemy_path": [
+      { "x": 50, "y": 450 },
+      { "x": 200, "y": 450 },
+      { "x": 300, "y": 350 },
+      { "x": 500, "y": 350 },
+      { "x": 600, "y": 550 },
+      { "x": 800, "y": 550 },
+      { "x": 900, "y": 350 },
+      { "x": 1100, "y": 350 },
+      { "x": 1200, "y": 450 },
+      { "x": 1550, "y": 450 }
+    ],
+    "tower_spots": [
+      { "x": 250, "y": 520 },
+      { "x": 400, "y": 420 },
+      { "x": 550, "y": 650 },
+      { "x": 700, "y": 480 },
+      { "x": 850, "y": 250 },
+      { "x": 1000, "y": 500 },
+      { "x": 1150, "y": 280 },
+      { "x": 1300, "y": 520 }
+    ],
+    "path_type": "linear"
+  },
+  "enemies": {
+    "basic": {
+      "health": 100,
+      "speed": 50,
+      "value": 15,
+      "resistances": {
+        "physical": 1.0,
+        "fire": 1.0,
+        "ice": 1.0
+      },
+      "animations": {
+        "walk": {
+          "frame_prefix": "assets/enemies/basic_walk_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "death": {
+          "frame_prefix": "assets/enemies/basic_die_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": false
+        }
+      },
+      "on_death": {}
+    },
+    "armored": {
+      "health": 250,
+      "speed": 40,
+      "value": 30,
+      "resistances": {
+        "physical": 0.5,
+        "fire": 1.2,
+        "ice": 1.0
+      },
+      "animations": {
+        "walk": {
+          "frame_prefix": "assets/enemies/armored_walk_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": true
+        },
+        "death": {
+          "frame_prefix": "assets/enemies/armored_die_",
+          "frame_count": 10,
+          "frame_rate": 30,
+          "loop": false
+        }
+      },
+      "on_death": {}
+    }
+  },
+  "towers": {
+    "basic": {
+      "name": "Basic Tower",
+      "cost": 50,
+      "damage": 20,
+      "range": 120,
+      "fire_rate": 1.0,
+      "damage_type": "physical",
+      "color": 8421504,
+      "sprite": "assets/towers/basic_tower.png",
+      "projectile": {
+        "sprite": "assets/projectiles/arrow_basic.png",
+        "speed": 200,
+        "scale": 0.3,
+        "rotation_offset": 0
+      },
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "display_name": "Damage +15",
+          "cost": 40,
+          "effect": { "damage": 15 }
+        },
+        {
+          "name": "range_boost",
+          "display_name": "Range +40",
+          "cost": 35,
+          "effect": { "range": 40 }
+        },
+        {
+          "name": "multi_shot",
+          "display_name": "Multi-Shot (+1 projectile)",
+          "cost": 80,
+          "effect": { "multi_shot": 1 }
+        },
+        {
+          "name": "triple_shot",
+          "display_name": "Triple Shot (+2 projectiles)",
+          "cost": 120,
+          "effect": { "multi_shot": 2 },
+          "prerequisites": ["multi_shot"]
+        },
+        {
+          "name": "piercing_bullets",
+          "display_name": "Armor Piercing",
+          "cost": 100,
+          "effect": { "piercing_bullets": 0.5, "duration": 2.0 }
+        },
+        {
+          "name": "critical_strike",
+          "display_name": "Critical Strike (50% chance)",
+          "cost": 150,
+          "effect": { "critical_strike": 0.5 },
+          "prerequisites": ["damage_boost"]
+        },
+        {
+          "name": "splash_damage",
+          "display_name": "Splash Damage (50 radius)",
+          "cost": 120,
+          "effect": { "splash_damage": 50 }
+        }
+      ]
+    },
+    "fire": {
+      "name": "Fire Tower",
+      "cost": 80,
+      "damage": 18,
+      "range": 110,
+      "fire_rate": 0.9,
+      "damage_type": "fire",
+      "color": 16730688,
+      "sprite": "assets/towers/fire_tower.png",
+      "projectile": {
+        "sprite": "assets/projectiles/fireball.png",
+        "speed": 180,
+        "scale": 0.4,
+        "rotation_offset": 0
+      },
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "display_name": "Damage +20",
+          "cost": 60,
+          "effect": { "damage": 20 }
+        },
+        {
+          "name": "incinerate",
+          "display_name": "Incinerate (5 DPS for 3s)",
+          "cost": 90,
+          "effect": { "incinerate_effect": 5, "duration": 3.0, "stackable": true }
+        },
+        {
+          "name": "mega_fireball",
+          "display_name": "Mega Fireball",
+          "cost": 120,
+          "effect": { "damage": 25, "splash_damage": 60 }
+        }
+      ]
+    },
+    "ice": {
+      "name": "Ice Tower",
+      "cost": 70,
+      "damage": 15,
+      "range": 115,
+      "fire_rate": 1.1,
+      "damage_type": "ice",
+      "color": 43647,
+      "sprite": "assets/towers/ice_tower.png",
+      "projectile": {
+        "sprite": "assets/projectiles/ice_shard.png",
+        "speed": 220,
+        "scale": 0.35,
+        "rotation_offset": 0
+      },
+      "upgrades": [
+        {
+          "name": "damage_boost",
+          "display_name": "Damage +18",
+          "cost": 55,
+          "effect": { "damage": 18 }
+        },
+        {
+          "name": "slowing_effect",
+          "display_name": "Slowing Effect (50% slow, 3s)",
+          "cost": 85,
+          "effect": { "slowing_effect": 0.5, "duration": 3.0 }
+        },
+        {
+          "name": "area_slow",
+          "display_name": "Area Slow (20% slow, 50 radius)",
+          "cost": 100,
+          "effect": { "slowing_effect": 0.2, "radius": 50, "duration": 3.0 }
+        }
+      ]
+    }
+  },
+  "waves": {
+    "waves": [
+      {
+        "number": 1,
+        "preview_description": "Basic enemies - test your towers!",
+        "enemies": [
+          { "type": "basic", "count": 10, "spawn_delay": 1.5 }
+        ]
+      },
+      {
+        "number": 2,
+        "preview_description": "Mixed wave - test upgrades!",
+        "enemies": [
+          { "type": "basic", "count": 8, "spawn_delay": 1.2 },
+          { "type": "armored", "count": 3, "spawn_delay": 2.0 }
+        ]
+      },
+      {
+        "number": 3,
+        "preview_description": "Final wave!",
+        "enemies": [
+          { "type": "armored", "count": 5, "spawn_delay": 1.5 }
+        ]
+      }
+    ]
+  }
+}
